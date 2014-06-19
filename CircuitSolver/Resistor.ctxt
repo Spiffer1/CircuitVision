@@ -1,0 +1,8 @@
+#BlueJ class context
+comment0.params=resist
+comment0.target=Resistor(int)
+comment0.text=\n\ Constructor\ sets\ the\ resistance\ to\ the\ specified\ value.\n\ @param\ resist\ \ Resistance\ of\ the\ resistor\ in\ ohms\n
+comment1.params=
+comment1.target=java.lang.String\ toString()
+comment1.text=\n\ @return\ Adds\ to\ the\ component's\ toString()\ the\ resistance\ value\n
+numComments=2
