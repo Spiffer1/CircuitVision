@@ -1,0 +1,8 @@
+#BlueJ class context
+comment0.params=theGUI\ r\ c\ originX\ originY\ spacing
+comment0.target=Dot(processing.core.PApplet,\ int,\ int,\ int,\ int,\ int)
+comment1.params=
+comment1.target=void\ display()
+comment2.params=x\ y
+comment2.target=float\ getDistance(int,\ int)
+numComments=3
