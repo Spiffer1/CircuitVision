@@ -20,11 +20,12 @@ import controlP5.*; // libary for making buttons (and more)
 
 public class CircuitVisionRunner extends PApplet
 {
-    private int terminalRows = 3;
+    private Circuit circuit;
+    private int terminalRows = 4;
     private int terminalCols = 4;
     private int gridX = 200;    // the x and y for the upper left terminal (Dot) on the screen
     private int gridY = 100;
-    private int gridSpacing = 50;
+    private int gridSpacing = 80;
     ControlP5 cp5;
     boolean animating;
     boolean showValues;
@@ -49,7 +50,7 @@ public class CircuitVisionRunner extends PApplet
         showValues = false;
 
         // make new Circuit object
-        Circuit circuit = new Circuit(terminalRows, terminalCols);
+        circuit = new Circuit(terminalRows, terminalCols);
 
         // Initialize dots
         for (int r = 0; r < terminalRows; r++)
@@ -60,6 +61,7 @@ public class CircuitVisionRunner extends PApplet
             }
         }
 
+        // Add buttons
         cp5 = new ControlP5(this);
         cp5.addBang("showValues")
         .setPosition(20, 320)
@@ -75,9 +77,55 @@ public class CircuitVisionRunner extends PApplet
         .setSize(80, 30)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
-            //.setFont(fontMed)
         .setText("Animate Model")
         ;
+
+        cp5.addToggle("resistorMode")
+        .setPosition(20, 50)
+        .setSize(80, 30)
+        .getCaptionLabel()
+        .align(ControlP5.CENTER, ControlP5.CENTER)
+        .setText("Add Resistor")
+        ;
+
+        cp5.addToggle("wireMode")
+        .setPosition(20, 100)
+        .setSize(80, 30)
+        .getCaptionLabel()
+        .align(ControlP5.CENTER, ControlP5.CENTER)
+        .setText("Add Wire")
+        ;
+
+        cp5.addToggle("batteryMode")
+        .setPosition(20, 150)
+        .setSize(80, 30)
+        .getCaptionLabel()
+        .align(ControlP5.CENTER, ControlP5.CENTER)
+        .setText("Add Battery")
+        ;
+
+        cp5.addToggle("removeMode")
+        .setPosition(20, 200)
+        .setSize(80, 30)
+        .getCaptionLabel()
+        .align(ControlP5.CENTER, ControlP5.CENTER)
+        .setText("Remove Component")
+        ;
+
+        // Until GUI can add components, use these:
+        circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
+        circuit.addComponent(new Wire(), 1, 0, 1, 1);
+        circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
+        circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
+        circuit.addComponent(new Wire(), 2, 1, 2, 0);
+        circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
+        
+        circuit.addComponent(new Wire(), 1, 2, 2, 2);
+        circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
+
+        circuit.addComponent(new Resistor(8), 2, 2, 2, 3);   // a dead-end
+        circuit.addComponent(new Wire(), 2, 3, 1, 3);
+        circuit.addComponent(new Battery(4), 1, 2, 1, 3);   // defaults to making the first coordinates the pos. end
 
         new PFrame();
     }
@@ -85,10 +133,59 @@ public class CircuitVisionRunner extends PApplet
     public void draw()
     {
         background(150);
-        drawPalette();
+
         drawCircuit();
 
+        // if (paletteclicked) animating = false; update cursor with component
+
+        // if (circuitclicked) animating = false; add component to circuit
+
     }
+
+    public void resistorMode(boolean on)
+    {
+        if (on)
+        {
+            animating = false;
+            ((Toggle)cp5.getController("wireMode")).setState(false);
+            ((Toggle)cp5.getController("batteryMode")).setState(false);
+            ((Toggle)cp5.getController("removeMode")).setState(false);
+        }
+    }
+
+    public void wireMode(boolean on)
+    {
+        if (on)
+        {
+            animating = false;
+            ((Toggle)cp5.getController("resistorMode")).setState(false);
+            ((Toggle)cp5.getController("batteryMode")).setState(false);
+            ((Toggle)cp5.getController("removeMode")).setState(false);
+        }
+    }
+
+    public void batteryMode(boolean on)
+    {
+        if (on)
+        {
+            animating = false;
+            ((Toggle)cp5.getController("wireMode")).setState(false);
+            ((Toggle)cp5.getController("resistorMode")).setState(false);
+            ((Toggle)cp5.getController("removeMode")).setState(false);
+        }
+    }
+
+    public void removeMode(boolean on)
+    {
+        if (on)
+        {
+            animating = false;
+            ((Toggle)cp5.getController("wireMode")).setState(false);
+            ((Toggle)cp5.getController("resistorMode")).setState(false);
+            ((Toggle)cp5.getController("batteryMode")).setState(false);
+        }
+    }
+
     public void showValues()
     {
         animating = false;
@@ -100,18 +197,92 @@ public class CircuitVisionRunner extends PApplet
         animating = true;
     }
 
-    public void drawPalette()
+    // If mouse clicked in circuit area, add (or remove) component
+    public void mouseClicked()
     {
 
     }
 
     public void drawCircuit()
     {
-        for (int r = 0; r < terminalRows; r++)
+        // Draw terminals
+        for (int row = 0; row < terminalRows; row++)
         {
-            for (int c = 0; c < terminalCols; c++)
+            for (int col = 0; col < terminalCols; col++)
             {
-                dots[r][c].display();
+                dots[row][col].display();
+            }
+        }
+        // Draw Components
+        for (Component c : circuit.getComponents())
+        {
+            int x1 = gridX + c.getEndPt1().getCol() * gridSpacing;
+            int y1 = gridY + c.getEndPt1().getRow() * gridSpacing;
+            int x2 = gridX + c.getEndPt2().getCol() * gridSpacing;
+            int y2 = gridY + c.getEndPt2().getRow() * gridSpacing;
+            if (c instanceof Wire)
+            {
+                line(x1, y1, x2, y2);
+            }
+            else if (c instanceof Resistor)
+            {
+                if (y1 == y2) // horizontal resistor
+                {
+                    int startX = Math.min(x1, x2) + (gridSpacing - 26) / 2;
+                    line(startX, y1, startX + 3, y1 - 5);
+                    line(startX + 3, y1 - 5, startX + 8, y1 + 5);
+                    line(startX + 8, y1 + 5, startX + 13, y1 - 5);
+                    line(startX + 13, y1 - 5, startX + 18, y1 + 5);
+                    line(startX + 18, y1 + 5, startX + 23, y1 - 5);
+                    line(startX + 23, y1 - 5, startX + 26, y1);
+                    line(Math.min(x1, x2), y1, startX, y1);
+                    line(Math.max(x1, x2), y1, startX + 26, y1);
+                }
+                else  // vertical resistor
+                {
+                    int startY = Math.min(y1, y2) + (gridSpacing - 26) / 2;
+                    line(x1, startY, x1 - 5, startY + 3);
+                    line(x1 - 5, startY + 3, x1 + 5, startY + 8);
+                    line(x1 + 5, startY + 8, x1 - 5, startY + 13);
+                    line(x1 - 5, startY + 13, x1 + 5, startY + 18);
+                    line(x1 + 5, startY + 18, x1 - 5, startY + 23);
+                    line(x1 - 5, startY + 23, x1, startY + 26);
+                    line(x1, Math.min(y1, y2), x1, startY);
+                    line(x1, Math.max(y1, y2), x1, startY + 26);                    
+                }
+            }
+            else if (c instanceof Battery)
+            {
+                pushMatrix();
+                // translate to middle of battery and rotate to get pos end on right
+                if (y1 == y2) // horizontal battery
+                {
+                    int x0 = Math.min(x1, x2);
+                    translate(x0 + gridSpacing / 2, y1);
+                    if (Math.min(c.getEndPt1().getCol(), c.getEndPt2().getCol()) == ((Battery)c).getPosEnd().getCol())
+                    {
+                        rotate(PI);
+                    }
+                }
+                else // vertical battery
+                {
+                    int y0 = Math.min(y1, y2);
+                    translate(x1, y0 + gridSpacing / 2);
+                    if (Math.min(c.getEndPt1().getRow(), c.getEndPt2().getRow()) == ((Battery)c).getPosEnd().getRow())
+                    {
+                        rotate(-PI / 2);
+                    }
+                    else
+                    {
+                        rotate(PI / 2);
+                    }
+                }
+                // draw battery
+                line(-gridSpacing / 2, 0, -3, 0);
+                line(3, 0, gridSpacing / 2, 0);
+                line(-3, -4, -3, 4);
+                line(3, -8, 3, 8);
+                popMatrix();
             }
         }
     }
@@ -144,7 +315,7 @@ public class CircuitVisionRunner extends PApplet
                 translate(200, 150, 0);
                 rotateY(frameCount/(float)30.0);
                 box(15, 100, 150);
-       
+
                 redraw();
             }
         }
