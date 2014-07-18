@@ -83,6 +83,21 @@ public class Circuit
      */
     public double[] solve()
     {
+        // Re-initialize component values
+        for (Component c : components)
+        {
+            c.setBranch(-1);
+            c.setCurrent(0);
+            c.setCurrentDirection(null);
+            if (c instanceof Battery)
+            {
+                c.setVoltage(Math.abs(c.getVoltage()));   // Voltage becomes negative when solve() walks through branch from pos. to neg. terminal
+            }
+            else
+            {
+                c.setVoltage(0);
+            }
+        }
         List<Terminal> nodes = new ArrayList<Terminal>();
         List<List<Component>> loops = new ArrayList<List<Component>>();
         int numBranches = findNodesAndLoops(nodes, loops);
@@ -113,12 +128,29 @@ public class Circuit
 
         // ****************************************************
         // Generate equation matrices from nodes and loops.
-        double[][] coefficients = new double[nodes.size() - 1 + loops.size()][numBranches];     // coefficient and constant terms
-        double[] constants = new double[nodes.size() - 1 + loops.size()];                       // for Kirchhoff's rules equations
+        double[][] coefficients;
+        double[] constants;
+        if (numBranches == 1)
+        {
+            coefficients = new double[1][1];
+            constants = new double[1];
+        }
+        else
+        {
+            coefficients = new double[nodes.size() - 1 + loops.size()][numBranches];     // coefficient and constant terms
+            constants = new double[nodes.size() - 1 + loops.size()];                       // for Kirchhoff's rules equations
+        }
 
         if (verbose)
         {
-            System.out.println("Coefficients dimensions are: " + (nodes.size() - 1 + loops.size()) + " x " + numBranches);
+            if (numBranches == 1)
+            {
+                System.out.println("Coefficients dimensions are: 1 x 1");
+            }
+            else
+            {
+                System.out.println("Coefficients dimensions are: " + (nodes.size() - 1 + loops.size()) + " x " + numBranches);
+            }
         }
         // Get equations from nodes
         int eqnNum = 0;

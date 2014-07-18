@@ -29,6 +29,10 @@ public class CircuitVisionRunner extends PApplet
     ControlP5 cp5;
     boolean animating;
     boolean showValues;
+    int circuitMode;    // 1: add resistor; 2: add wire; 3: add battery; 4: remove component; 0: no mode selected
+
+    // "Animate Model" button coordinates
+    int animLeft, animRight, animTop, animBottom;
 
     // to make a second window...
     private SecondApplet win2;
@@ -48,6 +52,7 @@ public class CircuitVisionRunner extends PApplet
 
         animating = false;
         showValues = false;
+        circuitMode = 0;
 
         // make new Circuit object
         circuit = new Circuit(terminalRows, terminalCols);
@@ -72,9 +77,13 @@ public class CircuitVisionRunner extends PApplet
         .setText("Show Values")
         ;
 
+        animLeft = 20;
+        animTop = 360;
+        animRight = animLeft + 80;  // width = 80
+        animBottom = animTop + 30; // height = 30
         cp5.addBang("animateModel")
-        .setPosition(20, 360)
-        .setSize(80, 30)
+        .setPosition(animLeft, animTop)
+        .setSize(animRight - animLeft, animBottom - animTop)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
         .setText("Animate Model")
@@ -119,7 +128,7 @@ public class CircuitVisionRunner extends PApplet
         circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
         circuit.addComponent(new Wire(), 2, 1, 2, 0);
         circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
-        
+
         circuit.addComponent(new Wire(), 1, 2, 2, 2);
         circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
 
@@ -133,20 +142,92 @@ public class CircuitVisionRunner extends PApplet
     public void draw()
     {
         background(150);
-
         drawCircuit();
-
-        // if (paletteclicked) animating = false; update cursor with component
 
         // if (circuitclicked) animating = false; add component to circuit
 
+    }
+
+    // If mouse clicked in circuit area, add (or remove) component
+    public void mouseClicked()
+    {
+        int mX = mouseX;
+        int mY = mouseY;
+        if ( !(mX > animLeft && mX < animRight && mY > animTop && mY < animBottom) ) // not on animate button
+        {
+            animating = false;
+        }
+        // Determine two terminals (row and column) that click was between
+        Dot closest = dots[0][0];
+        Dot nextClosest = dots[0][0];
+        float minDist = gridSpacing;
+        float minDist2 = gridSpacing;
+        for (int r = 0; r < terminalRows; r++)
+        {
+            for (int c = 0; c < terminalCols; c++)
+            {
+                float dist = dots[r][c].distanceToMouse();
+                if (dist < minDist)
+                {
+                    nextClosest = closest;
+                    minDist2 = minDist;
+                    closest = dots[r][c];
+                    minDist = dist;
+                }
+                else if (dist < minDist2)
+                {
+                    nextClosest = dots[r][c];
+                    minDist2 = dist;
+                }                
+            }
+        }
+        int r1 = closest.getRow();
+        int c1 = closest.getCol();
+        int r2 = nextClosest.getRow();
+        int c2 = nextClosest.getCol();
+        // Add component to circuit model
+        if (minDist < gridSpacing && minDist2 < gridSpacing)
+        {
+            // get component between those terminals (null if none)
+            Component c = circuit.getComponent(r1, c1, r2, c2);
+            if (c != null && circuitMode == 4)
+            {
+                circuit.removeComponent(c);
+            }
+            else if (c != null)
+            {
+                if (c instanceof Resistor)
+                {
+                    // joption pane to get resistance
+                }
+                if (c instanceof Battery)
+                {
+                    // joptionpane to get voltage
+                }
+            }
+            else if (c == null)
+            {
+                if (circuitMode == 1)
+                {
+                    circuit.addComponent(new Resistor(10), r1, c1, r2, c2);
+                }
+                if (circuitMode == 2)
+                {
+                    circuit.addComponent(new Wire(), r1, c1, r2, c2);
+                }
+                if (circuitMode == 3)
+                {
+                    circuit.addBattery(new Battery(12), r1, c1, r2, c2, r1, c1);  // pos end is dot closest to click 
+                }
+            }
+        }
     }
 
     public void resistorMode(boolean on)
     {
         if (on)
         {
-            animating = false;
+            circuitMode = 1;
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
@@ -157,7 +238,7 @@ public class CircuitVisionRunner extends PApplet
     {
         if (on)
         {
-            animating = false;
+            circuitMode = 2;
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
@@ -168,7 +249,7 @@ public class CircuitVisionRunner extends PApplet
     {
         if (on)
         {
-            animating = false;
+            circuitMode = 3;
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
@@ -179,7 +260,7 @@ public class CircuitVisionRunner extends PApplet
     {
         if (on)
         {
-            animating = false;
+            circuitMode = 4;
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
@@ -188,19 +269,24 @@ public class CircuitVisionRunner extends PApplet
 
     public void showValues()
     {
-        animating = false;
+        circuitMode = 0;
         showValues = true;
     }
 
     public void animateModel()
     {
+        circuitMode = 0;
+        circuit.solve();
         animating = true;
-    }
-
-    // If mouse clicked in circuit area, add (or remove) component
-    public void mouseClicked()
-    {
-
+        //         for (int r = 0; r < terminalRows; r++)
+        //         {
+        //             for (int c = 0; c < terminalCols; c++)
+        //             {
+        //                 System.out.print((int)(circuit.getTerminal(r, c).getPotential()) + "  ");
+        //             }
+        //             System.out.println();
+        //         }
+        System.out.println();
     }
 
     public void drawCircuit()
@@ -287,11 +373,13 @@ public class CircuitVisionRunner extends PApplet
         }
     }
 
+    int win2width = 600;
+    int win2height = 400;
     public class PFrame extends Frame 
     {
         public PFrame() 
         {
-            setBounds(300, 300, 400, 300);
+            setBounds(win2height, win2height, win2width, win2height);
             win2 = new SecondApplet();
             add(win2);
             win2.init();
@@ -303,20 +391,63 @@ public class CircuitVisionRunner extends PApplet
     {
         public void setup()
         {
-            size(400, 300, P3D);
+            size(win2width, win2height, P3D);
+            ortho();
+            lights();
+            stroke(0);
         }
 
         public void draw()
         {
             if (animating)
             {
+                pushMatrix();
+                rotateX(-PI / 6);
+                rotateY(-PI / 6);
+                int originX = 200;
+                int originY = 150;
+                int originZ = 0;
+                int voltScale = 10;
+
                 background(100);
                 fill(255);
-                translate(200, 150, 0);
-                rotateY(frameCount/(float)30.0);
-                box(15, 100, 150);
+                // Loop through terminals. For each...
+                for (int row = 0; row < terminalRows; row++)
+                {
+                    for (int col = 0; col < terminalCols; col++)
+                    {
+                        Terminal term = circuit.getTerminal(row, col);
+                        // draw tower if connected to anything
+                        if (term.getConnections().size() > 0)
+                        {
+                            pushMatrix();
+                            translate(originX + term.getCol() * gridSpacing, originY - (int)(0.5 * term.getPotential() * voltScale), originZ + term.getRow() * gridSpacing);
+                            box(16, (int)(term.getPotential() * voltScale), 16);
+                            popMatrix();
+                        }
+                    }
+                }
+                // if connected, draw connection plank to any component down or to the right
 
+                //                 // draw first tower of first component
+                //                 Terminal term = circuit.getComponents().get(0).getEndPt1();
+
+                //                 for (Component c : circuit.getComponents())
+                //                 {
+                //                     // get other end of component
+                //                     Terminal otherEnd = c.getEndPt1();
+                //                     if (term.equals(otherEnd)
+                //                     {
+                //                         otherEnd = c.getEndPt2();
+                //                     }
+                //                     
+                //                     // draw connecting plane (fill = 0)
+                //                     // draw tower at other end
+                //                     
+                //                 }
+                popMatrix();
                 redraw();
+
             }
         }
     }

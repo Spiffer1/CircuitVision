@@ -23,8 +23,23 @@ public class Dot
     }
 
     // return distance between this dot and (x, y)
-    public float getDistance(int x, int y)
+    public float distanceToMouse()
     {
         return (float)Math.sqrt((x - gui.mouseX) * (x - gui.mouseX) + (y - gui.mouseY) * (y - gui.mouseY));
+    }
+    
+    public int getRow()
+    {
+        return row;
+    }
+    
+    public int getCol()
+    {
+        return col;
+    }
+    
+    public String toString()
+    {
+        return "Dot at (" + col + ", " + row + ")\n";
     }
 }
