@@ -1,19 +1,20 @@
 /*
- * This Runner will eventually allow the user to add components to a grid of terminals
+ * This Runner allows the user to add components to a grid of terminals
  * by clicking on a component (resistor, wire, or battery) in a palette and then clicking
  * between two dots in the grid of terminals.
  * 
  * Once a complete circuit has been constructed, the user can click the "Animate Model"
  * button and an animated 3D model of the circuit will display in a second window.
+ * Only the model is currently static, it does not yet "animate".
  * 
- * This version is a proof of concept for the GUI. It does not actually allow create
- * new components and the animation is not of a circuit. But it does allow control of 
- * two windows and buttons.
+ * This version is a first pass at the GUI. The "Show Info" button is not yet
+ * implemented.
  * 
  * by Sean Fottrell
- * July 6, 2014
+ * August 3, 2014
  */
 
+import javax.swing.JOptionPane;
 import java.awt.*;
 import processing.core.*;
 import controlP5.*; // libary for making buttons (and more)
@@ -21,12 +22,14 @@ import controlP5.*; // libary for making buttons (and more)
 public class CircuitVisionRunner extends PApplet
 {
     private Circuit circuit;
-    private int terminalRows = 4;
-    private int terminalCols = 4;
-    private int gridX = 200;    // the x and y for the upper left terminal (Dot) on the screen
-    private int gridY = 100;
-    private int gridSpacing = 80;
+    private static int terminalRows = 4;
+    private static int terminalCols = 4;
+    private static int gridX = 200;    // the x and y for the upper left terminal (Dot) on the screen
+    private static int gridY = 100;
+    private static int gridSpacing = 80;
+
     ControlP5 cp5;
+    private boolean newAnimation;
     boolean animating;
     boolean showValues;
     int circuitMode;    // 1: add resistor; 2: add wire; 3: add battery; 4: remove component; 0: no mode selected
@@ -50,6 +53,7 @@ public class CircuitVisionRunner extends PApplet
         size(600,400);
         smooth();
 
+        newAnimation = false;
         animating = false;
         showValues = false;
         circuitMode = 0;
@@ -121,7 +125,7 @@ public class CircuitVisionRunner extends PApplet
         .setText("Remove Component")
         ;
 
-        // Until GUI can add components, use these:
+        // Create a default circuit for testing. This can be eliminated to start with a blank grid.
         circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
         circuit.addComponent(new Wire(), 1, 0, 1, 1);
         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
@@ -143,9 +147,6 @@ public class CircuitVisionRunner extends PApplet
     {
         background(150);
         drawCircuit();
-
-        // if (circuitclicked) animating = false; add component to circuit
-
     }
 
     // If mouse clicked in circuit area, add (or remove) component
@@ -270,23 +271,31 @@ public class CircuitVisionRunner extends PApplet
     public void showValues()
     {
         circuitMode = 0;
+        ((Toggle)cp5.getController("wireMode")).setState(false);
+        ((Toggle)cp5.getController("resistorMode")).setState(false);
+        ((Toggle)cp5.getController("batteryMode")).setState(false);
+        ((Toggle)cp5.getController("removeMode")).setState(false);
         showValues = true;
     }
 
     public void animateModel()
     {
         circuitMode = 0;
-        circuit.solve();
+        ((Toggle)cp5.getController("wireMode")).setState(false);
+        ((Toggle)cp5.getController("resistorMode")).setState(false);
+        ((Toggle)cp5.getController("batteryMode")).setState(false);
+        ((Toggle)cp5.getController("removeMode")).setState(false);
+        double[] currents = circuit.solve();
+        if (currents == null)
+        {
+            JOptionPane.showMessageDialog(null, "Short Circuit or Incomplete Circuit", "WARNING", JOptionPane.WARNING_MESSAGE);
+        }
+        else 
+        {
+            newAnimation = true;
+        }
         animating = true;
-        //         for (int r = 0; r < terminalRows; r++)
-        //         {
-        //             for (int c = 0; c < terminalCols; c++)
-        //             {
-        //                 System.out.print((int)(circuit.getTerminal(r, c).getPotential()) + "  ");
-        //             }
-        //             System.out.println();
-        //         }
-        System.out.println();
+
     }
 
     public void drawCircuit()
@@ -389,6 +398,8 @@ public class CircuitVisionRunner extends PApplet
 
     public class SecondApplet extends PApplet
     {
+        private Animation anim;
+
         public void setup()
         {
             size(win2width, win2height, P3D);
@@ -401,50 +412,38 @@ public class CircuitVisionRunner extends PApplet
         {
             if (animating)
             {
+                if (newAnimation)
+                {
+                    anim = new Animation(this, circuit, gridSpacing, terminalRows, terminalCols);
+                    newAnimation = false;
+                }
                 pushMatrix();
                 rotateX(-PI / 6);
-                rotateY(-PI / 6);
-                int originX = 200;
-                int originY = 150;
-                int originZ = 0;
-                int voltScale = 10;
+                rotateY(PI / 6);
 
                 background(100);
                 fill(255);
-                // Loop through terminals. For each...
-                for (int row = 0; row < terminalRows; row++)
-                {
-                    for (int col = 0; col < terminalCols; col++)
-                    {
-                        Terminal term = circuit.getTerminal(row, col);
-                        // draw tower if connected to anything
-                        if (term.getConnections().size() > 0)
-                        {
-                            pushMatrix();
-                            translate(originX + term.getCol() * gridSpacing, originY - (int)(0.5 * term.getPotential() * voltScale), originZ + term.getRow() * gridSpacing);
-                            box(16, (int)(term.getPotential() * voltScale), 16);
-                            popMatrix();
-                        }
-                    }
-                }
-                // if connected, draw connection plank to any component down or to the right
-
-                //                 // draw first tower of first component
-                //                 Terminal term = circuit.getComponents().get(0).getEndPt1();
-
-                //                 for (Component c : circuit.getComponents())
-                //                 {
-                //                     // get other end of component
-                //                     Terminal otherEnd = c.getEndPt1();
-                //                     if (term.equals(otherEnd)
-                //                     {
-                //                         otherEnd = c.getEndPt2();
-                //                     }
-                //                     
-                //                     // draw connecting plane (fill = 0)
-                //                     // draw tower at other end
-                //                     
-                //                 }
+                
+                anim.displayAnimation();
+                
+                //                 // if connected, draw connection plank to any component down or to the right
+                // 
+                //                 //                 // draw first tower of first component
+                //                 //                 Terminal term = circuit.getComponents().get(0).getEndPt1();
+                // 
+                //                 //                 for (Component c : circuit.getComponents())
+                //                 //                 {
+                //                 //                     // get other end of component
+                //                 //                     Terminal otherEnd = c.getEndPt1();
+                //                 //                     if (term.equals(otherEnd)
+                //                 //                     {
+                //                 //                         otherEnd = c.getEndPt2();
+                //                 //                     }
+                //                 //                     
+                //                 //                     // draw connecting plane (fill = 0)
+                //                 //                     // draw tower at other end
+                //                 //                     
+                //                 //                 }
                 popMatrix();
                 redraw();
 

@@ -83,7 +83,7 @@ public class Circuit
      */
     public double[] solve()
     {
-        // Re-initialize component values
+        // Re-initialize component values and terminal potentials
         for (Component c : components)
         {
             c.setBranch(-1);
@@ -98,6 +98,14 @@ public class Circuit
                 c.setVoltage(0);
             }
         }
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                terminals[r][c].setPotential(Double.MAX_VALUE);
+            }
+        }
+
         List<Terminal> nodes = new ArrayList<Terminal>();
         List<List<Component>> loops = new ArrayList<List<Component>>();
         int numBranches = findNodesAndLoops(nodes, loops);
@@ -111,6 +119,33 @@ public class Circuit
         {
             return null;
         }
+        // check for short circuits
+        boolean shortCircuit = false;
+        for (List<Component> loop : loops)
+        {
+            boolean battery = false;
+            boolean resistor = false;
+            for (Component c : loop)
+            {
+                if (c instanceof Battery)
+                {
+                    battery = true;
+                }
+                else if (c instanceof Resistor)
+                {
+                    resistor = true;
+                }
+            }
+            if (battery && !resistor)
+            {
+                shortCircuit = true;
+            }
+        }
+        if (shortCircuit)
+        {
+            return null;
+        }
+
         if (verbose)
         {
             System.out.println("The stored loops are:\n");
@@ -676,6 +711,7 @@ public class Circuit
                 firstIndex = nextIndex;
             }
         }
+
         // Assign potentials to Branch 999 components
         // Make List of branch 999 components
         List<Component> deadEnds = new ArrayList<Component>();
@@ -688,7 +724,7 @@ public class Circuit
         }
 
         // For any component in deadEnds that has one terminal potential set, set the terminal at the other end to the same potential
-        // and remove component from deadEnds List.
+        // (if it's a battery, add or subtract the batter potential from it) and remove component from deadEnds List.
         boolean terminalUpdated = true;
         while (terminalUpdated)
         {
@@ -696,15 +732,30 @@ public class Circuit
             for (int i = deadEnds.size() - 1; i >= 0; i--)
             {
                 Component c = deadEnds.get(i);
-                if (c.getEndPt1().getPotential() < Double.MAX_VALUE)
+                // If either end's potential is known...
+                if (c.getEndPt1().getPotential() < Double.MAX_VALUE || c.getEndPt2().getPotential() < Double.MAX_VALUE)
                 {
-                    c.getEndPt2().setPotential(c.getEndPt1().getPotential());
-                    terminalUpdated = true;
-                    deadEnds.remove(c);
-                }
-                else if (c.getEndPt2().getPotential() < Double.MAX_VALUE)
-                {
-                    c.getEndPt1().setPotential(c.getEndPt2().getPotential());
+                    // ... guess that End1 is known...
+                    Terminal knownPotentialTerm = c.getEndPt1();
+                    Terminal unknownPotentialTerm = c.getEndPt2();
+                    // ... if that's wrong then switch
+                    if (unknownPotentialTerm.getPotential() < Double.MAX_VALUE)    
+                    {
+                        knownPotentialTerm = c.getEndPt2();
+                        unknownPotentialTerm = c.getEndPt1();
+                    }
+                    unknownPotentialTerm.setPotential(knownPotentialTerm.getPotential());
+                    if (c instanceof Battery)
+                    {
+                        if (knownPotentialTerm.equals(((Battery)c).getPosEnd()))
+                        {
+                            unknownPotentialTerm.setPotential(knownPotentialTerm.getPotential() - Math.abs(((Battery)c).getVoltage()));
+                        }
+                        else
+                        {
+                            unknownPotentialTerm.setPotential(knownPotentialTerm.getPotential() + Math.abs(((Battery)c).getVoltage()));                   
+                        }
+                    }
                     terminalUpdated = true;
                     deadEnds.remove(c);
                 }

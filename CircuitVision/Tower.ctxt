@@ -1,0 +1,8 @@
+#BlueJ class context
+comment0.params=animationWindow\ originX\ originZ\ height
+comment0.target=Tower(processing.core.PApplet,\ int,\ int,\ int)
+comment1.params=
+comment1.target=void\ display()
+comment2.params=
+comment2.target=int\ getHeight()
+numComments=3

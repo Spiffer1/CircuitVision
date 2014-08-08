@@ -2,9 +2,9 @@ import processing.core.PApplet;
 
 public class Dot
 {
-    int row, col;
-    int x, y;
-    PApplet gui;
+    private int row, col;
+    private int x, y;
+    private PApplet gui;
 
     public Dot(PApplet theGUI, int r, int c, int originX, int originY, int spacing)
     {
