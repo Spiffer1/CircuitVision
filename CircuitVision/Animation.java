@@ -6,13 +6,13 @@ public class Animation
 {
     // following constants locate and scale the animation within its window
     public static int ORIGIN_X = 200;
-    public static int ORIGIN_Y = 350;
+    public static int ORIGIN_Y = 200;
     public static int ORIGIN_Z = 0;
     public static int VOLT_SCALE = 10;
     public static int WALL_WID = 16;
+    public static int WALL_LEN;     // defaults to gridSpacing - WALL_WID
+    
     private int gridSpacing;
-    private int wallLen;
-
     private PApplet win2;
     private Circuit circuit;
     private List<Tower> towers;
@@ -21,15 +21,15 @@ public class Animation
     private int numRows;
     private int numCols;
 
-    public Animation(PApplet animationWindow, Circuit c, int terminalSpacing, int terminalRows, int terminalCols)
+    public Animation(PApplet animationWindow, Circuit circ, int terminalSpacing, int terminalRows, int terminalCols)
     {
         win2 = animationWindow;
-        circuit = c;
+        circuit = circ;
         towers = new ArrayList<Tower>();
         walls = new ArrayList<Wall>();
         balls = new ArrayList<Ball>();
         gridSpacing = terminalSpacing;
-        wallLen = gridSpacing;
+        WALL_LEN = gridSpacing - WALL_WID;
         numRows = terminalRows;
         numCols = terminalCols;
 
@@ -46,6 +46,21 @@ public class Animation
                 }
             }
         }
+
+        // Construct arrayList of Walls
+        for (Component c : circuit.getComponents())
+        {
+            // Set downstream end of component to term2 and upstream end to term1
+            Terminal term1 = c.getEndPt1();
+            Terminal term2 = c.getEndPt2();
+            double current = c.getCurrent();
+            if (term1.equals(c.getCurrentDirection()) && current > 0 || term2.equals(c.getCurrentDirection()) && current < 0)
+            {
+                term1 = c.getEndPt2();
+                term2 = c.getEndPt1();
+            }
+            walls.add(new Wall(win2, findTowerAtLocation(term1.getRow(), term1.getCol()), findTowerAtLocation(term2.getRow(), term2.getCol()), current));
+        }
     }
 
     public void displayAnimation()
@@ -55,6 +70,22 @@ public class Animation
         {
             t.display();
         }
+        for (Wall w : walls)
+        {
+            w.display();
+        }
+    }
+
+    private Tower findTowerAtLocation(int row, int col)
+    {
+        for (Tower tower : towers)
+        {
+            if (tower.getX() == col * gridSpacing && tower.getZ() == row * gridSpacing)
+            {
+                return tower;
+            }
+        }
+        return null;
     }
 
     private int getTermX(Terminal t)

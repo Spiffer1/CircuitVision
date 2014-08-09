@@ -417,34 +417,11 @@ public class CircuitVisionRunner extends PApplet
                     anim = new Animation(this, circuit, gridSpacing, terminalRows, terminalCols);
                     newAnimation = false;
                 }
-                pushMatrix();
-                rotateX(-PI / 6);
-                rotateY(PI / 6);
-
+                //pushMatrix();
                 background(100);
                 fill(255);
-                
                 anim.displayAnimation();
-                
-                //                 // if connected, draw connection plank to any component down or to the right
-                // 
-                //                 //                 // draw first tower of first component
-                //                 //                 Terminal term = circuit.getComponents().get(0).getEndPt1();
-                // 
-                //                 //                 for (Component c : circuit.getComponents())
-                //                 //                 {
-                //                 //                     // get other end of component
-                //                 //                     Terminal otherEnd = c.getEndPt1();
-                //                 //                     if (term.equals(otherEnd)
-                //                 //                     {
-                //                 //                         otherEnd = c.getEndPt2();
-                //                 //                     }
-                //                 //                     
-                //                 //                     // draw connecting plane (fill = 0)
-                //                 //                     // draw tower at other end
-                //                 //                     
-                //                 //                 }
-                popMatrix();
+                //popMatrix();
                 redraw();
 
             }

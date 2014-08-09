@@ -19,8 +19,10 @@ public class Tower
     public void display()
     {
         win2.pushMatrix();
+        win2.rotateX(-win2.PI / 6);
+        win2.rotateY(win2.PI / 6);
         win2.translate(x, 0, z);
-
+        
         win2.beginShape(win2.QUADS);
         win2.vertex(0, 0, 0);
         win2.vertex(0, h, 0);
@@ -54,6 +56,16 @@ public class Tower
         win2.endShape();
 
         win2.popMatrix();
+    }
+
+    public int getX()
+    {
+        return x;
+    }
+
+    public int getZ()
+    {
+        return z;
     }
 
     public int getHeight()

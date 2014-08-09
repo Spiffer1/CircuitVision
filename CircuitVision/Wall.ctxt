@@ -1,6 +1,6 @@
 #BlueJ class context
-comment0.params=animationWindow\ comp
-comment0.target=Wall(processing.core.PApplet,\ Component)
+comment0.params=animationWindow\ upstreamTower\ downstreamTower\ current_
+comment0.target=Wall(processing.core.PApplet,\ Tower,\ Tower,\ double)
 comment1.params=
 comment1.target=void\ display()
 numComments=2
