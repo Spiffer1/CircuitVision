@@ -9,4 +9,6 @@ comment3.params=
 comment3.target=int\ getZ()
 comment4.params=
 comment4.target=int\ getHeight()
-numComments=5
+comment5.params=
+comment5.target=java.lang.String\ toString()
+numComments=6

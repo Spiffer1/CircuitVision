@@ -7,7 +7,7 @@ public class Animation
     // following constants locate and scale the animation within its window
     public static int ORIGIN_X = 200;
     public static int ORIGIN_Y = 200;
-    public static int ORIGIN_Z = 0;
+    public static int ORIGIN_Z = -100;
     public static int VOLT_SCALE = 10;
     public static int WALL_WID = 16;
     public static int WALL_LEN;     // defaults to gridSpacing - WALL_WID
@@ -42,11 +42,11 @@ public class Animation
                 // construct tower if the terminal is connected to anything
                 if (term.getConnections().size() > 0)
                 {
-                    towers.add(new Tower(win2, getTermX(term), getTermZ(term), getTermHeight(term)));                    
+                    towers.add(new Tower(win2, getTermX(term), getTermZ(term), getTermHeight(term)));
                 }
             }
         }
-
+        
         // Construct arrayList of Walls
         for (Component c : circuit.getComponents())
         {
@@ -61,11 +61,24 @@ public class Animation
             }
             walls.add(new Wall(win2, findTowerAtLocation(term1.getRow(), term1.getCol()), findTowerAtLocation(term2.getRow(), term2.getCol()), current));
         }
+        
+        // Construct balls on each wall
+        int numBalls = 3;
+        for (Wall wall : walls)
+        {
+            for (int i = 0; i < numBalls; i++)
+            {
+                balls.add(new Ball(win2, wall, i * (WALL_LEN + WALL_WID) / 3));
+            }
+        }
     }
 
     public void displayAnimation()
     {
         win2.translate(ORIGIN_X, ORIGIN_Y, ORIGIN_Z);
+        //win2.pushMatrix();
+        win2.rotateX(-win2.PI / 6);
+        win2.rotateY(-win2.PI / 6);
         for (Tower t : towers)
         {
             t.display();
@@ -73,6 +86,12 @@ public class Animation
         for (Wall w : walls)
         {
             w.display();
+        }
+        //win2.popMatrix();
+        for (Ball b : balls)
+        {
+            b.display();
+            b.move();
         }
     }
 

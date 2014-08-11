@@ -1,2 +1,8 @@
 #BlueJ class context
-numComments=0
+comment0.params=animationWindow\ wall\ initX
+comment0.target=Ball(processing.core.PApplet,\ Wall,\ int)
+comment1.params=
+comment1.target=void\ move()
+comment2.params=
+comment2.target=void\ display()
+numComments=3

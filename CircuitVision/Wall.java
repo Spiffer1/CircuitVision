@@ -15,7 +15,7 @@ public class Wall
         win2 = animationWindow;
         t1 = upstreamTower;
         t2 = downstreamTower;
-        current = current_;
+        current = Math.abs(current_);
     }
 
     public void display()
@@ -31,9 +31,7 @@ public class Wall
             nearTower = t1;
         }
 
-        //translate to that tower's (x, z)
-        win2.rotateX(-win2.PI / 6);
-        win2.rotateY(win2.PI / 6);
+        //translate to that tower's (x, z), but to the middle of tower instead of its corner
         win2.translate(farTower.getX() + Animation.WALL_WID, 0, farTower.getZ());
 
         // if necessary, rotateY(PI/2) and translate over by wallWidth
@@ -77,5 +75,20 @@ public class Wall
         
         win2.endShape();
         win2.popMatrix();
+    }
+    
+    public double getCurrent()
+    {
+        return current;
+    }
+    
+    public Tower getT1()
+    {
+        return t1;
+    }
+    
+    public Tower getT2()
+    {
+        return t2;
     }
 }

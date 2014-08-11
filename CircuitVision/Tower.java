@@ -3,7 +3,7 @@ import processing.core.PApplet;
 public class Tower
 {
     PApplet win2;
-    // (x, 0, z) is the bottom left and farthest corner of the tower.
+    // (x, 0, z) is the bottom left, furthest back corner of the tower.
     private int x;  // (0, 0, 0) has already been translated translated
     private int z;
     private int h;  // heights are negative, since positive y axis points downward
@@ -19,12 +19,10 @@ public class Tower
     public void display()
     {
         win2.pushMatrix();
-        win2.rotateX(-win2.PI / 6);
-        win2.rotateY(win2.PI / 6);
         win2.translate(x, 0, z);
         
         win2.beginShape(win2.QUADS);
-        win2.vertex(0, 0, 0);
+        win2.vertex(0 , 0, 0);
         win2.vertex(0, h, 0);
         win2.vertex(Animation.WALL_WID, h, 0);
         win2.vertex(Animation.WALL_WID, 0, 0);
@@ -71,5 +69,10 @@ public class Tower
     public int getHeight()
     {
         return h;
+    }
+    
+    public String toString()
+    {
+        return "x: " + x + "\tz: " + z + "\th: " + h;
     }
 }

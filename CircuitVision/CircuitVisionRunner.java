@@ -406,6 +406,7 @@ public class CircuitVisionRunner extends PApplet
             ortho();
             lights();
             stroke(0);
+            frameRate(30);
         }
 
         public void draw()
