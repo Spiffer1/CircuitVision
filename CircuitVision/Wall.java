@@ -1,4 +1,6 @@
 import processing.core.PApplet;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Part of the View. A Wall is drawn in the 3D Animation for each component in the circuit.
@@ -9,6 +11,9 @@ public class Wall
     private Tower t1;
     private Tower t2;
     private double current;
+    private boolean readyForBall;
+    private List<Ball> balls;
+    private int numBalls;
 
     public Wall(PApplet animationWindow, Tower upstreamTower, Tower downstreamTower, double current_)
     {
@@ -16,6 +21,9 @@ public class Wall
         t1 = upstreamTower;
         t2 = downstreamTower;
         current = Math.abs(current_);
+        readyForBall = false;
+        balls = new ArrayList<Ball>();
+        numBalls = Animation.BALLS_PER_WALL;
     }
 
     public void display()
@@ -40,7 +48,7 @@ public class Wall
             win2.rotateY(-1 * win2.PI/2);
             win2.translate(Animation.WALL_WID, 0, 0);
         }
-        
+
         // draw wall starting at left/back tower.
         win2.beginShape(win2.QUADS);
         win2.vertex(0, 0, 0);
@@ -62,31 +70,72 @@ public class Wall
         win2.vertex(0, farTower.getHeight(), Animation.WALL_WID);
         win2.vertex(0, farTower.getHeight(), 0);
         win2.vertex(0, 0, 0);  
-        
+
         win2.vertex(0, 0, 0);
         win2.vertex(Animation.WALL_LEN, 0, 0);
         win2.vertex(Animation.WALL_LEN, 0, Animation.WALL_WID);        
         win2.vertex(0, 0, Animation.WALL_WID);  
-        
+
         win2.vertex(0, farTower.getHeight(), 0);
         win2.vertex(Animation.WALL_LEN, nearTower.getHeight(), 0);
         win2.vertex(Animation.WALL_LEN, nearTower.getHeight(), Animation.WALL_WID);        
         win2.vertex(0, farTower.getHeight(), Animation.WALL_WID);  
-        
+
         win2.endShape();
         win2.popMatrix();
     }
-    
+        
+    public void updateBalls()
+    {
+        for (int i = 0; i < numBalls; i++)
+        {
+            Ball b = balls.get(i);
+            b.display();
+            b.move();
+            if (b.getX() > Animation.WALL_LEN + Animation.WALL_WID)
+            {
+                balls.remove(b);
+                numBalls--;
+                readyForBall = true;
+                t2.addWaitingBall();
+            }
+        }
+        while (readyForBall && t1.takeWaitingBall())
+        {
+            // Find x for ball that is closest to t1
+            float x = Animation.WALL_LEN + Animation.WALL_WID;
+            for (Ball b : balls)
+            {
+                if (b.getX() < x)
+                {
+                    x = b.getX();
+                }
+            }
+            
+            addNewBall(x - (Animation.WALL_LEN + Animation.WALL_WID) / Animation.BALLS_PER_WALL);
+            numBalls++;
+            if (balls.size() >= Animation.BALLS_PER_WALL)
+            {
+                readyForBall = false;
+            }
+        }
+    }
+
+    public void addNewBall(float x)
+    {
+        balls.add(new Ball(win2, this, x));
+    }
+
     public double getCurrent()
     {
         return current;
     }
-    
+
     public Tower getT1()
     {
         return t1;
     }
-    
+
     public Tower getT2()
     {
         return t2;

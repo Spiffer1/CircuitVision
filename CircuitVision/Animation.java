@@ -11,13 +11,13 @@ public class Animation
     public static int VOLT_SCALE = 10;
     public static int WALL_WID = 16;
     public static int WALL_LEN;     // defaults to gridSpacing - WALL_WID
-    
+    public static int BALLS_PER_WALL = 3;
+
     private int gridSpacing;
     private PApplet win2;
     private Circuit circuit;
     private List<Tower> towers;
     private List<Wall> walls;
-    private List<Ball> balls;
     private int numRows;
     private int numCols;
 
@@ -27,7 +27,6 @@ public class Animation
         circuit = circ;
         towers = new ArrayList<Tower>();
         walls = new ArrayList<Wall>();
-        balls = new ArrayList<Ball>();
         gridSpacing = terminalSpacing;
         WALL_LEN = gridSpacing - WALL_WID;
         numRows = terminalRows;
@@ -46,7 +45,7 @@ public class Animation
                 }
             }
         }
-        
+
         // Construct arrayList of Walls
         for (Component c : circuit.getComponents())
         {
@@ -61,14 +60,13 @@ public class Animation
             }
             walls.add(new Wall(win2, findTowerAtLocation(term1.getRow(), term1.getCol()), findTowerAtLocation(term2.getRow(), term2.getCol()), current));
         }
-        
+
         // Construct balls on each wall
-        int numBalls = 3;
         for (Wall wall : walls)
         {
-            for (int i = 0; i < numBalls; i++)
+            for (int i = 0; i < BALLS_PER_WALL; i++)
             {
-                balls.add(new Ball(win2, wall, i * (WALL_LEN + WALL_WID) / 3));
+                wall.addNewBall(i * (WALL_LEN + WALL_WID) / BALLS_PER_WALL);
             }
         }
     }
@@ -76,7 +74,6 @@ public class Animation
     public void displayAnimation()
     {
         win2.translate(ORIGIN_X, ORIGIN_Y, ORIGIN_Z);
-        //win2.pushMatrix();
         win2.rotateX(-win2.PI / 6);
         win2.rotateY(-win2.PI / 6);
         for (Tower t : towers)
@@ -86,12 +83,7 @@ public class Animation
         for (Wall w : walls)
         {
             w.display();
-        }
-        //win2.popMatrix();
-        for (Ball b : balls)
-        {
-            b.display();
-            b.move();
+            w.updateBalls();
         }
     }
 

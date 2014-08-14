@@ -407,6 +407,7 @@ public class CircuitVisionRunner extends PApplet
             lights();
             stroke(0);
             frameRate(30);
+            sphereDetail(6);
         }
 
         public void draw()
@@ -418,13 +419,10 @@ public class CircuitVisionRunner extends PApplet
                     anim = new Animation(this, circuit, gridSpacing, terminalRows, terminalCols);
                     newAnimation = false;
                 }
-                //pushMatrix();
                 background(100);
                 fill(255);
                 anim.displayAnimation();
-                //popMatrix();
                 redraw();
-
             }
         }
     }

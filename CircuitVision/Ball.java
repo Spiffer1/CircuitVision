@@ -2,13 +2,13 @@ import processing.core.PApplet;
 
 public class Ball
 {
+    public static int RADIUS = 4;
+    private float speed = (float).5; // scale factor for ball speed
     PApplet win2;
     private float x;
     private Wall myWall;
-    private int speed = 2; // scale factor for ball speed
-    private int radius = 4;
 
-    public Ball(PApplet animationWindow, Wall wall, int initX)
+    public Ball(PApplet animationWindow, Wall wall, float initX)
     {
         win2 = animationWindow;
         myWall = wall;
@@ -18,11 +18,6 @@ public class Ball
     public void move()
     {
         x += (float)(speed * myWall.getCurrent());
-        if (x > Animation.WALL_LEN + Animation.WALL_WID)
-        {
-            //x = 0;
-            x = x % (Animation.WALL_LEN + Animation.WALL_WID);
-        }
     }
 
     public void display()
@@ -45,7 +40,7 @@ public class Ball
             height = h1 + (int)((h2 - h1) * (x - Animation.WALL_WID/2.0) / Animation.WALL_LEN); 
         }
         win2.translate(myWall.getT1().getX() + Animation.WALL_WID/2, height, myWall.getT1().getZ() + Animation.WALL_WID/2);
-        
+
         // rotate so current is running left to right.
         if (myWall.getT1().getZ() > myWall.getT2().getZ())
         {
@@ -60,11 +55,16 @@ public class Ball
             win2.rotateY(3 * win2.PI / 2);            
         }
         // draw sphere at appropriate height (tower or wall height)
-        win2.translate(x, -radius, 0);
+        win2.translate(x, -RADIUS, 0);
         //System.out.println(x);
-        win2.sphere(radius);
-        
+        win2.sphere(RADIUS);
+
         win2.popMatrix();
+    }
+
+    public float getX()
+    {
+        return x;
     }
 }
 
