@@ -3,7 +3,6 @@ import processing.core.PApplet;
 public class Ball
 {
     public static int RADIUS = 4;
-    private float speed = (float).5; // scale factor for ball speed
     PApplet win2;
     private float x;
     private Wall myWall;
@@ -17,7 +16,7 @@ public class Ball
 
     public void move()
     {
-        x += (float)(speed * myWall.getCurrent());
+        x += (float)(Animation.SPEED * myWall.getCurrent());
     }
 
     public void display()

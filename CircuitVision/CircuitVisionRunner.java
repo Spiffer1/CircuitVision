@@ -5,43 +5,55 @@
  * 
  * Once a complete circuit has been constructed, the user can click the "Animate Model"
  * button and an animated 3D model of the circuit will display in a second window.
- * Only the model is currently static, it does not yet "animate".
  * 
  * This version is a first pass at the GUI. The "Show Info" button is not yet
  * implemented.
  * 
  * by Sean Fottrell
- * August 3, 2014
+ * September 1, 2014
  */
 
 import javax.swing.JOptionPane;
 import java.awt.*;
-import processing.core.*;
-import controlP5.*; // libary for making buttons (and more)
+import processing.core.*;   // library for the Processing language, developed by Casey Reas and Ben Fry
+                            // See processing.org for more info
+import controlP5.*; // libary for making buttons (and more); see www.sojamo.de/libraries/controlP5
 
+/**
+ * CircuitVisionRunner is the controller class for the CircuitVision program. This class controls and displays
+ * the main GUI window containing the circuit diagram and buttons that allow interaction with the program.
+ * 
+ * Other classes in the View are "Dot", representing the terminals in the circuit diagram, and a set of 
+ * classes for displaying an additional window (win2) for the 3-D animation: "Animation", "Wall", "Tower", 
+ * "Ball", and "Wheel".
+ * 
+ * This class and the "Animation" class use a set of Model classes, that represent the circuit components
+ * and solve the circuit to find currents and potentials at each point. These classes include: "Circuit",
+ * "Component" (with its sub-classes "Resistor", "Battery", and "Wire") and "Terminal".
+ */
 public class CircuitVisionRunner extends PApplet
 {
-    private Circuit circuit;
+    private Circuit circuit;    // holds the circuit model
     private static int terminalRows = 4;
     private static int terminalCols = 4;
     private static int gridX = 200;    // the x and y for the upper left terminal (Dot) on the screen
     private static int gridY = 100;
     private static int gridSpacing = 80;
 
-    ControlP5 cp5;
+    private ControlP5 cp5;
     private boolean newAnimation;
-    boolean animating;
-    boolean showValues;
-    int circuitMode;    // 1: add resistor; 2: add wire; 3: add battery; 4: remove component; 0: no mode selected
+    private boolean animating;
+    private boolean showValues;
+    private int circuitMode;    // 1: add resistor; 2: add wire; 3: add battery; 4: remove component; 0: no mode selected
 
     // "Animate Model" button coordinates
-    int animLeft, animRight, animTop, animBottom;
+    private int animLeft, animRight, animTop, animBottom;
 
     // to make a second window...
     private SecondApplet win2;
 
     // make 2D array of Dot objects: the terminals shown on the screen
-    Dot[][] dots = new Dot[terminalRows][terminalCols];
+    private Dot[][] dots = new Dot[terminalRows][terminalCols];
 
     public static void main(String args[]) 
     {
@@ -131,7 +143,7 @@ public class CircuitVisionRunner extends PApplet
         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
         circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
         circuit.addComponent(new Wire(), 2, 1, 2, 0);
-        circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
+        //circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
 
         circuit.addComponent(new Wire(), 1, 2, 2, 2);
         circuit.addComponent(new Resistor(4), 2, 2, 2, 1);

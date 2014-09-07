@@ -1,14 +1,20 @@
 #BlueJ class context
 comment0.params=theGUI\ r\ c\ originX\ originY\ spacing
 comment0.target=Dot(processing.core.PApplet,\ int,\ int,\ int,\ int,\ int)
+comment0.text=\n\ Constructor\ for\ a\ new\ Dot,\ which\ corresponds\ to\ one\ terminal\ in\ the\ Circuit.\n\ @param\ theGUI\ reference\ to\ the\ Processing\ graphics\ window\ which\ holds\ the\ circuit\ diagram.\n\ @param\ r\ \ Row\ number\ of\ the\ Dot\n\ @param\ c\ \ Column\ number\ of\ the\ Dot\n\ @param\ originX\ \ X\ coordinate\ of\ the\ upper\ left\ dot\ in\ the\ matrix\n\ @param\ originY\ \ Y\ coordinate\ of\ the\ upper\ left\ dot\ in\ the\ matrix\n\ @param\ spacing\ \ Number\ of\ pixels\ between\ each\ pair\ of\ dots\n
 comment1.params=
 comment1.target=void\ display()
+comment1.text=\n\ Sends\ calls\ methods\ from\ the\ Processing\ library\ to\ display\ a\ dot.\ Defaults\ to\ a\ black\ circle\n\ with\ 5\ pixel\ diameter.\n
 comment2.params=
 comment2.target=float\ distanceToMouse()
+comment2.text=\n\ @return\ distance\ in\ pixels\ from\ this\ dot\ to\ the\ last\ mouse\ click.\n
 comment3.params=
 comment3.target=int\ getRow()
+comment3.text=\n\ @return\ \ This\ dot's\ row.\n
 comment4.params=
 comment4.target=int\ getCol()
+comment4.text=\n\ @return\ \ This\ dot's\ column.\n
 comment5.params=
 comment5.target=java.lang.String\ toString()
+comment5.text=\n\ @return\ Returns\ a\ string\ with\ the\ dot\ location\ expressed\ as\ an\ ordered\ pair\ (x,\ y).\n
 numComments=6

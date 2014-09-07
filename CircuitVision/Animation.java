@@ -12,6 +12,7 @@ public class Animation
     public static int WALL_WID = 16;
     public static int WALL_LEN;     // defaults to gridSpacing - WALL_WID
     public static int BALLS_PER_WALL = 3;
+    public static float SPEED = (float).5; // scale factor for ball speed and water wheel speed
 
     private int gridSpacing;
     private PApplet win2;
@@ -67,6 +68,25 @@ public class Animation
             for (int i = 0; i < BALLS_PER_WALL; i++)
             {
                 wall.addNewBall(i * (WALL_LEN + WALL_WID) / BALLS_PER_WALL);
+            }
+        }
+
+        // Construct water wheels for each resistor
+        for (Component c : circuit.getComponents())
+        {
+            if (c instanceof Resistor)
+            {
+                // Find corresponding wall
+                Tower t1 = findTowerAtLocation(c.getEndPt1().getRow(), c.getEndPt1().getCol());
+                Tower t2 = findTowerAtLocation(c.getEndPt2().getRow(), c.getEndPt2().getCol());
+                for (Wall w : walls)
+                {
+                    if (w.getT1().equals(t1) && w.getT2().equals(t2) || w.getT2().equals(t1) && w.getT1().equals(t2))
+                    {
+                        w.addWheel();
+                        break;
+                    }
+                }
             }
         }
     }

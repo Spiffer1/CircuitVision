@@ -15,7 +15,7 @@ public class Circuit
     private int rows;
     private int cols;
     private int numBranches;
-    private boolean verbose = false;
+    private boolean verbose = true;
 
     /**
      * Constructs a new Circuit object with a grid of terminals with particular dimensions
@@ -652,6 +652,20 @@ public class Circuit
      * of Double.MAX_VALUE.
      * @param loops  A List of the ArrayLists of components in each circuit loop
      * @param nodes  A List of the circuit nodes/junctions
+     * 
+     * BUG HERE!!!!!!
+     * FINDING POTENTIALS BY ONLY GOING AROUND LOOPS IS TROUBLE. IF LOOP 0 DOES NOT HAVE A TERMINAL IN COMMON
+     * WITH LOOP 1, THEN TRYING TO ASSIGN POTENTIALS TO LOOP 1 WILL NOT WORK.
+     * 
+     * INSTEAD, START WITH LOOP 0, THEN 
+     * ASSIGN POTENTIALS FOR A LOOP
+     * WHILE (NOT IN NEXT LOOP AND NOT DONE WITH ALL LOOPS)
+     *  LOOK FOR COMPONENT CONNECTED TO SOMETHING IN A COMPLETED LOOP THAT DOES NOT HAVE ITS POTENTIAL SET AT ONE END.
+     *  IF THAT COMPONENT IS NOT PART OF ANOTHER LOOP, ASSIGN SAME POTENTIAL TO ITS OTHER END (CURRENT THROUGH IT MUST BE 0)
+     *      ELSE IN_NEXT_LOOP = TRUE
+     *      . . . .
+     * AHHHHHHHH!!!
+     * 
      */
     private void calculatePotentials(List<List<Component>> loops, List<Terminal> nodes)
     {
@@ -671,10 +685,13 @@ public class Circuit
             // the second component in the list where the potential at either endpoint is less than
             // Double.MAX_VALUE. So find the first such component, then get the next one.
             int firstIndex = 0;
+            System.out.println("Loop size: " + loop.size());
             while (loop.get(firstIndex).getEndPt1().getPotential() == Double.MAX_VALUE && loop.get(firstIndex).getEndPt2().getPotential() == Double.MAX_VALUE)
             {
+                System.out.println("Component #: " + firstIndex);
                 firstIndex++;
             }
+            System.out.println();
             // If first component in loop has been assigned a potential, also check if last one was assigned a potential.
             // Then increment firstIndex so that it is really the second component with an assigned terminal.
             if ( !(firstIndex == 0 && (loop.get(loop.size() - 1).getEndPt1().getPotential() < Double.MAX_VALUE/10 || loop.get(loop.size() - 1).getEndPt2().getPotential() < Double.MAX_VALUE/10)) )
@@ -724,7 +741,7 @@ public class Circuit
         }
 
         // For any component in deadEnds that has one terminal potential set, set the terminal at the other end to the same potential
-        // (if it's a battery, add or subtract the batter potential from it) and remove component from deadEnds List.
+        // (if it's a battery, add or subtract the battery potential from it) and remove component from deadEnds List.
         boolean terminalUpdated = true;
         while (terminalUpdated)
         {

@@ -1,6 +1,10 @@
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Terminals occur in a 2-D matrix. Each Terminal object knows its row and column within the grid, and also
+ * its potential and what components (if any) that it is connected to.
+ */
 public class Terminal
 {
     private List<Component> connections;
