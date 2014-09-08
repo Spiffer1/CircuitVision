@@ -143,7 +143,7 @@ public class CircuitVisionRunner extends PApplet
         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
         circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
         circuit.addComponent(new Wire(), 2, 1, 2, 0);
-        //circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
+        circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
 
         circuit.addComponent(new Wire(), 1, 2, 2, 2);
         circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
