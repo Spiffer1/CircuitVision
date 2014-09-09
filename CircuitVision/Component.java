@@ -4,6 +4,7 @@
  */
 abstract public class Component
 {
+    protected Circuit myCircuit;
     protected int resistance;
     protected Terminal endPt1;
     protected Terminal endPt2;
@@ -21,6 +22,7 @@ abstract public class Component
      */
     public Component()
     {
+        myCircuit = null;
         resistance = 0;
         current = 0.0;
         voltage = 0.0;
@@ -139,6 +141,38 @@ abstract public class Component
     public Terminal getCurrentDirection()
     {
         return currentDirection;
+    }
+    
+    public void setCircuit(Circuit circuit)
+    {
+        myCircuit = circuit;
+    }
+    
+    public Circuit getCircuit()
+    {
+        return myCircuit;
+    }
+    
+    /**
+     * @return true if both components are part of the same circuit and are connected between the
+     * same terminals.
+     */
+    public boolean equals(Component other)
+    {
+        if (myCircuit == null || other.getCircuit() == null)
+        {
+            System.out.println("Component's circuit is null");
+            return false;
+        }
+        if (true)//myCircuit.equals(other.getCircuit())) //&& endPt1.equals(other.getEndPt1()) && endPt2.equals(other.getEndPt2()))
+        {
+            System.out.println("Equality");
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**

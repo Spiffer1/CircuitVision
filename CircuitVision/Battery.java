@@ -8,7 +8,7 @@ public class Battery extends Component
     
     /**
      * Constructs a Battery with the specified voltage. That voltage will be changed into a 
-     * negative value when current directions are assigned if the current is direction chosen
+     * negative value when current directions are assigned if the current direction chosen is
      * such that it flows through the battery from its positive to its negative terminal.
      * @param volts  Voltage of the battery
      */
