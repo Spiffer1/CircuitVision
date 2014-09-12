@@ -1,6 +1,7 @@
 /**
  * All components (Resistors, Wires, Batteries, etc.) that can be placed between two terminals 
- * are subclasses of Component.
+ * are subclasses of Component. When a component is added to a circuit, its endPt variables
+ * are assigned Terminals.
  */
 abstract public class Component
 {
@@ -8,7 +9,7 @@ abstract public class Component
     protected Terminal endPt1;
     protected Terminal endPt2;
     protected double current;
-    protected double voltage;
+    //protected double voltage;   // Voltage pertains only to Batteries and is always positive
     protected int branch;
     protected Terminal currentDirection;    // this will equal either endPt1 or endPt2. Current flows from 
     // the other end, through component, and toward this terminal.
@@ -23,7 +24,6 @@ abstract public class Component
     {
         resistance = 0;
         current = 0.0;
-        voltage = 0.0;
         branch = -1;
     }
 
@@ -86,25 +86,6 @@ abstract public class Component
     }
 
     /**
-     * Typically used to set the voltage of a Battery, or by the solve() method once current through
-     * each circuit branch has been determined.
-     * @param  Voltage across a component.
-     */
-    public void setVoltage(double v)
-    {
-        voltage = v;
-    }
-
-    /**
-     * Accessor for a component's voltage.
-     * @return  Voltage across the component.
-     */
-    public double getVoltage()
-    {
-        return voltage;
-    }
-
-    /**
      * Called by labelBranches() as part of the solve() method. The branch number corresponds to a current
      * variable: currents[branch].
      */
@@ -142,6 +123,34 @@ abstract public class Component
     }
 
     /**
+     * @return true if both "this" component and "other" are connected between the same terminals,
+     * are both the same component sub-class, and have same value for Resistance or Voltage (if a battery).
+     */
+    public boolean equals(Component other)
+    {
+        if (endPt1 == null || other.getEndPt1() == null)
+        {
+            return false;
+        }
+        if (endPt1.equals(other.getEndPt1()) && endPt2.equals(other.getEndPt2()) || endPt1.equals(other.getEndPt2()) && endPt2.equals(other.getEndPt1()))
+        {
+            if (this instanceof Wire && other instanceof Wire)
+            {
+                return true;
+            }
+            else if (this instanceof Resistor && other instanceof Resistor && resistance == other.getResistance())
+            {
+                return true;
+            }
+            else if ( this instanceof Battery && other instanceof Battery && ((Battery)this).getVoltage() == ((Battery)other).getVoltage() && ((Battery)this).getPosEnd().equals( ((Battery)other).getPosEnd() ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @return  Returns the terminals the component is connected between, the current direction terminal,
      * the current through and voltage across the component.
      */
@@ -166,7 +175,6 @@ abstract public class Component
         }
         result += "Current Direction: " + getCurrentDirection() + "  ";
         result += "Current: " + getCurrent() + "  ";
-        result += "Voltage: " + getVoltage() + "  ";
         return result;
     }
 }

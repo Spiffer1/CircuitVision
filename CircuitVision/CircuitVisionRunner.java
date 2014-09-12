@@ -16,7 +16,7 @@
 import javax.swing.JOptionPane;
 import java.awt.*;
 import processing.core.*;   // library for the Processing language, developed by Casey Reas and Ben Fry
-                            // See processing.org for more info
+// See processing.org for more info
 import controlP5.*; // libary for making buttons (and more); see www.sojamo.de/libraries/controlP5
 
 /**
@@ -152,6 +152,8 @@ public class CircuitVisionRunner extends PApplet
         circuit.addComponent(new Wire(), 2, 3, 1, 3);
         circuit.addComponent(new Battery(4), 1, 2, 1, 3);   // defaults to making the first coordinates the pos. end
 
+        //circuit.addComponent(new Wire(), 1, 1, 1, 2);
+        //circuit.addComponent(new Wire(), 3, 0, 2, 0);
         new PFrame();
     }
 
@@ -308,6 +310,11 @@ public class CircuitVisionRunner extends PApplet
         }
         animating = true;
 
+        //         for (Component c: circuit.getComponents())
+        //         {
+        //             System.out.println(c);
+        //         }
+        //         System.out.println("\n\n");
     }
 
     public void drawCircuit()

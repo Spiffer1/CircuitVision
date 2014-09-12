@@ -15,7 +15,7 @@ public class Circuit
     private int rows;
     private int cols;
     private int numBranches;
-    private boolean verbose = true;
+    private boolean verbose = false;
 
     /**
      * Constructs a new Circuit object with a grid of terminals with particular dimensions
@@ -68,7 +68,7 @@ public class Circuit
             }
             else if (comp instanceof Battery)
             {
-                Battery batt = new Battery(comp.getVoltage());
+                Battery batt = new Battery(((Battery)comp).getVoltage());
                 addBattery(batt, r1, c1, r2, c2, ((Battery)comp).getPosEnd().getRow(), ((Battery)comp).getPosEnd().getCol());
             }
         }
@@ -89,14 +89,6 @@ public class Circuit
             c.setBranch(-1);
             c.setCurrent(0);
             c.setCurrentDirection(null);
-            if (c instanceof Battery)
-            {
-                c.setVoltage(Math.abs(c.getVoltage()));   // Voltage becomes negative when solve() walks through branch from pos. to neg. terminal
-            }
-            else
-            {
-                c.setVoltage(0);
-            }
         }
         for (int r = 0; r < rows; r++)
         {
@@ -119,6 +111,7 @@ public class Circuit
         {
             return null;
         }
+
         // check for short circuits
         boolean shortCircuit = false;
         for (List<Component> loop : loops)
@@ -155,7 +148,7 @@ public class Circuit
                 List<Component> loop = loops.get(i);
                 for (Component c : loop)
                 {
-                    System.out.println(c + "  branch: " + c.getBranch());
+                    System.out.println("Loop: " + c + "  branch: " + c.getBranch());
                 }
                 System.out.println();
             }
@@ -229,7 +222,7 @@ public class Circuit
                         boolean connectedToNextComponent = false;
                         for (Component aConnectedComponent : c.getCurrentDirection().getConnections()) // Test whether the currentDirection
                         {                                       // end of the component is connected to the next component in the loop...
-                            if (nextComponent == aConnectedComponent)
+                            if (nextComponent.equals(aConnectedComponent))
                             {
                                 connectedToNextComponent = true;
                             }
@@ -258,18 +251,18 @@ public class Circuit
                     // Determine whether the direction you are walking through the loop is from the neg. to pos. terminal of the battery
                     for (Component aConnectedComponent : ((Battery)c).getPosEnd().getConnections())
                     {
-                        if (nextComponent == aConnectedComponent)   // if the posive end is connected to the next component in the loop...
+                        if (nextComponent.equals(aConnectedComponent))   // if the posive end is connected to the next component in the loop...
                         {
                             connectedToNextComponent = true;
                         }
                     }
                     if (connectedToNextComponent)
                     {
-                        voltageGain += c.getVoltage();            // then it's a voltage gain. (Walking through battery from neg to pos.
+                        voltageGain += ((Battery)c).getVoltage();            // then it's a voltage gain. (Walking through battery from neg to pos.)
                     }
                     else
                     {
-                        voltageGain -= c.getVoltage();   // Otherwise you are walking around the loop from pos to neg through the battery.
+                        voltageGain -= ((Battery)c).getVoltage();   // Otherwise you are walking around the loop from pos to neg through the battery.
                     }
                 }
             }
@@ -317,7 +310,7 @@ public class Circuit
         {
             currents[i] = solution.getEntry(i);
         }
-        // Update component currents and voltages
+        // Update component currents
         for (Component c : components)
         {
             if (c.getBranch() < 999)
@@ -327,17 +320,6 @@ public class Circuit
             else
             {
                 c.setCurrent(0);
-            }
-            if (c instanceof Battery)   // if current through battery goes from pos to neg, make its voltage negative
-            {
-                if (c.getCurrentDirection() != ((Battery)c).getPosEnd())
-                {
-                    c.setVoltage(-1 * c.getVoltage());
-                }
-            }
-            else
-            {
-                c.setVoltage(-1 * c.getResistance() * c.getCurrent());
             }
         }
         if (verbose)
@@ -394,6 +376,7 @@ public class Circuit
             }
         }
         equationCopy.findNodes(nodes);  // The nodes list is now properly updated for writing circuit equations.
+        equationCopy.labelBranches(nodes);
 
         // Make a copy of circuit and nodes that can be modified during the loop analysis. As loops are identified,
         // components will be removed from the copy circuit, so that different loops can be found.
@@ -403,10 +386,16 @@ public class Circuit
         copy.labelBranches(copyNodes);
 
         // Update original circuit with branch numbers from the copy that has had deadends trimmed off
-        for (Component c : copy.getComponents())
+        for (Component c : equationCopy.getComponents())
         {
-            Component orig = copy.findCorrespondingComponent(this, c);
+            Component orig = findCorrespondingComponent(this, c);
             orig.setBranch(c.getBranch());
+
+            /*
+             * Shouldn't the following line be necessary? Without it, the current directions of the circuit (on which the animation is based)
+             * are not the same as the current directions used for solving the equations (those of equationCopy). Yet this wreaks havoc.
+             */            
+            orig.setCurrentDirection(c.getCurrentDirection());
         }
         numBranches = copy.getNumBranches();
 
@@ -427,7 +416,7 @@ public class Circuit
             {
                 //walk around loop, adding terminals and components to their arrays 
                 copyLoops.get(loopCounter).add(comp);
-                origLoops.get(loopCounter).add(copy.findCorrespondingComponent(this, comp));  // corresponding component in orig circuit
+                origLoops.get(loopCounter).add(findCorrespondingComponent(this, comp));  // corresponding component in orig circuit
                 Terminal nextTerm = comp.getEndPt2();
                 if (nextTerm == prevTerm)   // then nextTerm is not actually the next terminal in the loop...
                 {
@@ -652,129 +641,73 @@ public class Circuit
      * of Double.MAX_VALUE.
      * @param loops  A List of the ArrayLists of components in each circuit loop
      * @param nodes  A List of the circuit nodes/junctions
-     * 
-     * BUG HERE!!!!!!
-     * FINDING POTENTIALS BY ONLY GOING AROUND LOOPS IS TROUBLE. IF LOOP 0 DOES NOT HAVE A TERMINAL IN COMMON
-     * WITH LOOP 1, THEN TRYING TO ASSIGN POTENTIALS TO LOOP 1 WILL NOT WORK.
-     * 
-     * INSTEAD, START WITH LOOP 0, THEN 
-     * ASSIGN POTENTIALS FOR A LOOP
-     * WHILE (NOT IN NEXT LOOP AND NOT DONE WITH ALL LOOPS)
-     *  LOOK FOR COMPONENT CONNECTED TO SOMETHING IN A COMPLETED LOOP THAT DOES NOT HAVE ITS POTENTIAL SET AT ONE END.
-     *  IF THAT COMPONENT IS NOT PART OF ANOTHER LOOP, ASSIGN SAME POTENTIAL TO ITS OTHER END (CURRENT THROUGH IT MUST BE 0)
-     *      ELSE IN_NEXT_LOOP = TRUE
-     *      . . . .
-     * AHHHHHHHH!!!
-     * 
      */
     private void calculatePotentials(List<List<Component>> loops, List<Terminal> nodes)
     {
-        // Determine first terminal in loop; assign it potential 0
+        // Find a terminal in a loop; assign it potential 0
         Component comp = loops.get(0).get(0);
-        Terminal term = comp.getEndPt1();
-        if (term.connectedTo(loops.get(0).get(1)))
-        {
-            term = comp.getEndPt2();
-        }
-        term.setPotential(0);
+        comp.getEndPt1().setPotential(0);
 
-        // Loop through all the circuit loops
-        for (List<Component> loop : loops)
-        {
-            // Find a component whose front endpoint has been assigned a potential. That would be
-            // the second component in the list where the potential at either endpoint is less than
-            // Double.MAX_VALUE. So find the first such component, then get the next one.
-            int firstIndex = 0;
-            System.out.println("Loop size: " + loop.size());
-            while (loop.get(firstIndex).getEndPt1().getPotential() == Double.MAX_VALUE && loop.get(firstIndex).getEndPt2().getPotential() == Double.MAX_VALUE)
-            {
-                System.out.println("Component #: " + firstIndex);
-                firstIndex++;
-            }
-            System.out.println();
-            // If first component in loop has been assigned a potential, also check if last one was assigned a potential.
-            // Then increment firstIndex so that it is really the second component with an assigned terminal.
-            if ( !(firstIndex == 0 && (loop.get(loop.size() - 1).getEndPt1().getPotential() < Double.MAX_VALUE/10 || loop.get(loop.size() - 1).getEndPt2().getPotential() < Double.MAX_VALUE/10)) )
-            {
-                firstIndex++;
-            }
-            // Starting at firstIndex, calculate potentials for the rest of the terminals in the loop
-            for (int i = 0; i < loop.size(); i++)
-            {
-                Component c = loop.get(firstIndex);
-                // Other end's potential is known end's potential + component's voltage gain
-                int nextIndex = firstIndex + 1;
-                if (nextIndex == loop.size())
-                {
-                    nextIndex = 0;
-                }
-                Terminal knownEnd = c.getEndPt1();
-                Terminal otherEnd = c.getEndPt2();
-                if (knownEnd.connectedTo(loop.get(nextIndex)))
-                {
-                    knownEnd = c.getEndPt2();
-                    otherEnd = c.getEndPt1();
-                }
-
-                if (c.getCurrentDirection() == otherEnd)    // If looping through in direction of current, add the component's voltage gain...
-                {
-                    otherEnd.setPotential(knownEnd.getPotential() + c.getVoltage());
-                }
-                else
-                {
-                    otherEnd.setPotential(knownEnd.getPotential() - c.getVoltage());    // ... otherwise subtract the component's voltage gain.
-                }
-
-                firstIndex = nextIndex;
-            }
-        }
-
-        // Assign potentials to Branch 999 components
-        // Make List of branch 999 components
-        List<Component> deadEnds = new ArrayList<Component>();
+        // Make a copy of the circuit components. Loop through all copied components finding those that have a potential set at only one end.
+        // Then calculate and set potential for the other end and remove that component from the copy List.
+        List<Component> componentsCopy = new ArrayList<Component>();
         for (Component c : components)
         {
-            if (c.getBranch() == 999)
-            {
-                deadEnds.add(c);
-            }
+            componentsCopy.add(c);
         }
-
-        // For any component in deadEnds that has one terminal potential set, set the terminal at the other end to the same potential
-        // (if it's a battery, add or subtract the battery potential from it) and remove component from deadEnds List.
-        boolean terminalUpdated = true;
-        while (terminalUpdated)
+        
+        boolean updateOccurred = true;
+        while (updateOccurred)
         {
-            terminalUpdated = false;
-            for (int i = deadEnds.size() - 1; i >= 0; i--)
+            updateOccurred = false;
+            for (int i  = 0; i < componentsCopy.size(); i++)
             {
-                Component c = deadEnds.get(i);
-                // If either end's potential is known...
-                if (c.getEndPt1().getPotential() < Double.MAX_VALUE || c.getEndPt2().getPotential() < Double.MAX_VALUE)
+                Component c = componentsCopy.get(i);
+                double potential1 = c.getEndPt1().getPotential();
+                double potential2 = c.getEndPt2().getPotential(); 
+                if (potential1 < Double.MAX_VALUE / 10 && potential2 >= Double.MAX_VALUE / 10 || potential2 < Double.MAX_VALUE / 10 && potential1 >= Double.MAX_VALUE / 10)
                 {
-                    // ... guess that End1 is known...
-                    Terminal knownPotentialTerm = c.getEndPt1();
-                    Terminal unknownPotentialTerm = c.getEndPt2();
-                    // ... if that's wrong then switch
-                    if (unknownPotentialTerm.getPotential() < Double.MAX_VALUE)    
+                    // Other end's potential is known end's potential + component's voltage gain
+                    Terminal knownEnd = c.getEndPt1();
+                    Terminal otherEnd = c.getEndPt2();
+                    if (knownEnd.getPotential() >= Double.MAX_VALUE / 10)
                     {
-                        knownPotentialTerm = c.getEndPt2();
-                        unknownPotentialTerm = c.getEndPt1();
+                        knownEnd = c.getEndPt2();
+                        otherEnd = c.getEndPt1();
                     }
-                    unknownPotentialTerm.setPotential(knownPotentialTerm.getPotential());
+
                     if (c instanceof Battery)
                     {
-                        if (knownPotentialTerm.equals(((Battery)c).getPosEnd()))
+                        if (knownEnd.equals( ((Battery)c).getPosEnd() ))
                         {
-                            unknownPotentialTerm.setPotential(knownPotentialTerm.getPotential() - Math.abs(((Battery)c).getVoltage()));
+                            otherEnd.setPotential(knownEnd.getPotential() - ((Battery)c).getVoltage());
                         }
                         else
                         {
-                            unknownPotentialTerm.setPotential(knownPotentialTerm.getPotential() + Math.abs(((Battery)c).getVoltage()));                   
+                            otherEnd.setPotential(knownEnd.getPotential() + ((Battery)c).getVoltage());
                         }
                     }
-                    terminalUpdated = true;
-                    deadEnds.remove(c);
+                    else
+                    {
+                        if (c.getBranch() < 999)
+                        {
+                            if (c.getCurrentDirection() != null && c.getCurrentDirection().equals(knownEnd))    
+                            {
+                                otherEnd.setPotential(knownEnd.getPotential() + c.getResistance() * c.getCurrent());
+                            }
+                            else
+                            {
+                                otherEnd.setPotential(knownEnd.getPotential() - c.getResistance() * c.getCurrent());
+                            }
+                        }
+                        else
+                        {
+                            otherEnd.setPotential(knownEnd.getPotential());
+                        }
+                    }
+                    updateOccurred = true;
+                    componentsCopy.remove(i);
+                    break;
                 }
             }
         }
@@ -801,14 +734,17 @@ public class Circuit
                 }
             }
         }
-
-        // Set any remaining terminals of deadEnd components to potential 0. These would be components not connected to any complete circuit.
+        // Loop through any remaining components in componentsCopy. If their terminal potentials are still Double.MAX_VALUE,
+        // set them to 0. These would be components not connected to any complete circuit.
         // This may not be correct, since these components may include a battery, or even a separate complete circuit...
-        for (Component c : deadEnds)
+        for (Component c : componentsCopy)
         {
-            c.getEndPt1().setPotential(0);
-            c.getEndPt2().setPotential(0);
-        }
+            if (c.getEndPt1().getPotential() >= Double.MAX_VALUE / 10)
+            {
+                c.getEndPt1().setPotential(0);
+                c.getEndPt2().setPotential(0);
+            }
+        }       
     }
 
     /**
@@ -833,7 +769,6 @@ public class Circuit
         {
             return false;
         }
-
         components.add(c);
         terminals[r1][c1].connect(c);
         terminals[r2][c2].connect(c);

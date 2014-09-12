@@ -1,14 +1,20 @@
 #BlueJ class context
 comment0.params=volts
 comment0.target=Battery(double)
-comment0.text=\n\ Constructs\ a\ Battery\ with\ the\ specified\ voltage.\ That\ voltage\ will\ be\ changed\ into\ a\ \n\ negative\ value\ when\ current\ directions\ are\ assigned\ if\ the\ current\ is\ direction\ chosen\n\ such\ that\ it\ flows\ through\ the\ battery\ from\ its\ positive\ to\ its\ negative\ terminal.\n\ @param\ volts\ \ Voltage\ of\ the\ battery\n
+comment0.text=\n\ Constructs\ a\ Battery\ with\ the\ specified\ voltage.\ That\ voltage\ will\ be\ changed\ into\ a\ \n\ negative\ value\ when\ current\ directions\ are\ assigned\ if\ the\ current\ direction\ chosen\ is\n\ such\ that\ it\ flows\ through\ the\ battery\ from\ its\ positive\ to\ its\ negative\ terminal.\n\ @param\ volts\ \ Voltage\ of\ the\ battery\n
 comment1.params=posTerminal
 comment1.target=void\ setPosEnd(Terminal)
 comment1.text=\n\ Mutator\ to\ set\ which\ end\ of\ a\ battery\ is\ the\ positive\ terminal.\n\ @param\ posTerminal\ \ The\ Terminal\ connected\ to\ the\ positive\ end\ of\ the\ battery.\n
 comment2.params=
 comment2.target=Terminal\ getPosEnd()
 comment2.text=\n\ @return\ \ Returns\ the\ Terminal\ connected\ to\ the\ positive\ end\ of\ the\ battery\n
-comment3.params=
-comment3.target=java.lang.String\ toString()
-comment3.text=\n\ @return\ \ Returns\ the\ Component's\ toString()\ with\ the\ battery's\ voltage\ and\ positive\ end\ appended\n
-numComments=4
+comment3.params=v
+comment3.target=void\ setVoltage(double)
+comment3.text=\n\ Typically\ used\ to\ set\ the\ voltage\ of\ a\ Battery,\ or\ by\ the\ solve()\ method\ once\ current\ through\n\ each\ circuit\ branch\ has\ been\ determined.\n\ @param\ \ Voltage\ across\ a\ component.\n
+comment4.params=
+comment4.target=double\ getVoltage()
+comment4.text=\n\ Accessor\ for\ a\ component's\ voltage.\n\ @return\ \ Voltage\ across\ the\ component.\n
+comment5.params=
+comment5.target=java.lang.String\ toString()
+comment5.text=\n\ @return\ \ Returns\ the\ Component's\ toString()\ with\ the\ battery's\ voltage\ and\ positive\ end\ appended\n
+numComments=6
