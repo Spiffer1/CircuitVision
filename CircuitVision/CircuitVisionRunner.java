@@ -143,17 +143,17 @@ public class CircuitVisionRunner extends PApplet
         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
         circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
         circuit.addComponent(new Wire(), 2, 1, 2, 0);
-        //         circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
-        // 
-        //         circuit.addComponent(new Wire(), 1, 2, 2, 2);
-        //         circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
-        // 
-        //         circuit.addComponent(new Resistor(8), 2, 2, 2, 3);   // a dead-end
-        //         circuit.addComponent(new Wire(), 2, 3, 1, 3);
-        //         circuit.addComponent(new Battery(4), 1, 2, 1, 3);   // defaults to making the first coordinates the pos. end
+        circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
 
-        circuit.addComponent(new Wire(), 1, 1, 1, 2);
-        circuit.addComponent(new Wire(), 3, 0, 2, 0);
+        circuit.addComponent(new Wire(), 1, 2, 2, 2);
+        circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
+
+        circuit.addComponent(new Resistor(8), 2, 2, 2, 3);   // a dead-end
+        circuit.addComponent(new Wire(), 2, 3, 1, 3);
+        circuit.addComponent(new Battery(4), 1, 2, 1, 3);   // defaults to making the first coordinates the pos. end
+
+        //circuit.addComponent(new Wire(), 1, 1, 1, 2);
+        //circuit.addComponent(new Wire(), 3, 0, 2, 0);
         new PFrame();
     }
 
