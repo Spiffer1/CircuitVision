@@ -9,10 +9,9 @@ abstract public class Component
     protected Terminal endPt1;
     protected Terminal endPt2;
     protected double current;
-    //protected double voltage;   // Voltage pertains only to Batteries and is always positive
     protected int branch;
     protected Terminal currentDirection;    // this will equal either endPt1 or endPt2. Current flows from 
-    // the other end, through component, and toward this terminal.
+                                            // the other end, through component, and toward this terminal.
 
     /**
      * This constructor is called by all Component supclasses. When a component is added to a circuit,
@@ -152,7 +151,7 @@ abstract public class Component
 
     /**
      * @return  Returns the terminals the component is connected between, the current direction terminal,
-     * the current through and voltage across the component.
+     * and the current through the component.
      */
     public String toString()
     {

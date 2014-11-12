@@ -309,12 +309,6 @@ public class CircuitVisionRunner extends PApplet
             newAnimation = true;
         }
         animating = true;
-
-        //         for (Component c: circuit.getComponents())
-        //         {
-        //             System.out.println(c);
-        //         }
-        //         System.out.println("\n\n");
     }
 
     public void drawCircuit()
@@ -407,7 +401,7 @@ public class CircuitVisionRunner extends PApplet
     {
         public PFrame() 
         {
-            setBounds(win2height, win2height, win2width, win2height);
+            setBounds(0, 20, win2width, win2height);
             win2 = new SecondApplet();
             add(win2);
             win2.init();
@@ -422,7 +416,6 @@ public class CircuitVisionRunner extends PApplet
         public void setup()
         {
             size(win2width, win2height, P3D);
-            ortho();
             lights();
             stroke(0);
             frameRate(30);
@@ -438,6 +431,7 @@ public class CircuitVisionRunner extends PApplet
                     anim = new Animation(this, circuit, gridSpacing, terminalRows, terminalCols);
                     newAnimation = false;
                 }
+                ortho();
                 background(100);
                 fill(255);
                 anim.displayAnimation();

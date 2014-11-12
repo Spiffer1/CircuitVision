@@ -8,9 +8,7 @@ public class Battery extends Component
     private double battVoltage; // always positive
     
     /**
-     * Constructs a Battery with the specified voltage. That voltage will be changed into a 
-     * negative value when current directions are assigned if the current direction chosen is
-     * such that it flows through the battery from its positive to its negative terminal.
+     * Constructs a Battery with the specified voltage.
      * @param volts  Voltage of the battery
      */
     public Battery(double volts)
@@ -37,8 +35,6 @@ public class Battery extends Component
     }
     
     /**
-     * Typically used to set the voltage of a Battery, or by the solve() method once current through
-     * each circuit branch has been determined.
      * @param  Voltage across a component.
      */
     public void setVoltage(double v)
@@ -47,14 +43,13 @@ public class Battery extends Component
     }
 
     /**
-     * Accessor for a component's voltage.
+     * Accessor for a battery's voltage.
      * @return  Voltage across the component.
      */
     public double getVoltage()
     {
         return battVoltage;
     }
-
     
     /**
      * @return  Returns the Component's toString() with the battery's voltage and positive end appended

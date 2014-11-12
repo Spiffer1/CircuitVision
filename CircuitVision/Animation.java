@@ -2,6 +2,14 @@ import java.util.List;
 import java.util.ArrayList;
 import processing.core.PApplet;
 
+/**
+ * Activated by CircuitVisionRunner: When the AnimateModel button is clicked, 
+ * the circuit is solved and the "animating" and "newAnimation" flags are set 
+ * to true. The latter flag results in an object of type Animation be instantiated.
+ * 
+ * The Animation object's job is primarily to create instances of "Wall"s, "Tower"s, "Ball"s,
+ * and "Wheel"s.
+ */
 public class Animation
 {
     // following constants locate and scale the animation within its window

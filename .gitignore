@@ -1,5 +1,6 @@
 .DS_Store
 *.class
+*.html
 
 # Package Files #
 *.jar
