@@ -32,11 +32,24 @@ public class Dot
      * Sends calls methods from the Processing library to display a dot. Defaults to a black circle
      * with 5 pixel diameter.
      */
-    public void display()
+    public void display(Circuit circuit, boolean showValues)
     {
         gui.stroke(0);
         gui.fill(0);
         gui.ellipse(x, y, 5, 5);
+        if (showValues)
+        {
+            Terminal term = circuit.getTerminal(row, col);
+            double potential = term.getPotential();
+            if (potential < Double.MAX_VALUE / 10)
+            {
+                potential = (int)(potential * 10 + 0.5) / 10.0;     // round to nearest tenth
+                //gui.textAlign(LEFT);
+                gui.fill(255);
+                gui.textSize(10);
+                gui.text( Double.toString(potential) + " V", x + 3, y - 8);
+            }
+        }
     }
 
     /**

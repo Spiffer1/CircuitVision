@@ -79,7 +79,6 @@ public class Circuit
      * After running it, each component will have been assigned a branch number, current, and a current direction;
      * each Terminal will have a potential.
      * @return  Returns an array of currents. Each current is indexed by its branch number within the circuit. Returns null if it does not find a complete circuit.
-     * 
      */
     public double[] solve()
     {

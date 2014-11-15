@@ -84,7 +84,7 @@ public class CircuitVisionRunner extends PApplet
 
         // Add buttons
         cp5 = new ControlP5(this);
-        cp5.addBang("showValues")
+        cp5.addToggle("showValues")
         .setPosition(20, 320)
         .setSize(80, 30)
         .getCaptionLabel()
@@ -275,6 +275,7 @@ public class CircuitVisionRunner extends PApplet
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
+            ((Toggle)cp5.getController("showValues")).setState(false);
         }
     }
 
@@ -286,6 +287,7 @@ public class CircuitVisionRunner extends PApplet
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
+            ((Toggle)cp5.getController("showValues")).setState(false);
         }
     }
 
@@ -297,6 +299,7 @@ public class CircuitVisionRunner extends PApplet
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
+            ((Toggle)cp5.getController("showValues")).setState(false);
         }
     }
 
@@ -308,17 +311,34 @@ public class CircuitVisionRunner extends PApplet
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
+            ((Toggle)cp5.getController("showValues")).setState(false);
         }
     }
 
-    public void showValues()
+    public void showValues(boolean on)
     {
-        circuitMode = 0;
-        ((Toggle)cp5.getController("wireMode")).setState(false);
-        ((Toggle)cp5.getController("resistorMode")).setState(false);
-        ((Toggle)cp5.getController("batteryMode")).setState(false);
-        ((Toggle)cp5.getController("removeMode")).setState(false);
-        showValues = true;
+        if (on)
+        {
+            circuitMode = 0;
+            ((Toggle)cp5.getController("wireMode")).setState(false);
+            ((Toggle)cp5.getController("resistorMode")).setState(false);
+            ((Toggle)cp5.getController("batteryMode")).setState(false);
+            ((Toggle)cp5.getController("removeMode")).setState(false);
+
+            double[] currents = circuit.solve();
+            if (currents == null)
+            {
+                JOptionPane.showMessageDialog(null, "Short Circuit or Incomplete Circuit", "WARNING", JOptionPane.WARNING_MESSAGE);
+            }
+            else 
+            {
+                showValues = true;
+            }
+        }
+        else
+        {
+            showValues = false;
+        }
     }
 
     public void animateModel()
@@ -347,7 +367,11 @@ public class CircuitVisionRunner extends PApplet
         {
             for (int col = 0; col < terminalCols; col++)
             {
-                dots[row][col].display();
+                if (showValues)
+                {
+                    textAlign(LEFT);
+                }
+                dots[row][col].display(circuit, showValues);
             }
         }
         // Draw Components
@@ -367,6 +391,7 @@ public class CircuitVisionRunner extends PApplet
                 {
                     int startX = Math.min(x1, x2) + (gridSpacing - 26) / 2;
                     textAlign(CENTER);
+                    textSize(12);
                     text(c.getResistance(), startX + 13, y1 - 10);
                     line(startX, y1, startX + 3, y1 - 5);
                     line(startX + 3, y1 - 5, startX + 8, y1 + 5);
@@ -381,6 +406,7 @@ public class CircuitVisionRunner extends PApplet
                 {
                     int startY = Math.min(y1, y2) + (gridSpacing - 26) / 2;
                     textAlign(RIGHT);
+                    textSize(12);
                     text(c.getResistance(), x1 - 8, startY + 17);
                     line(x1, startY, x1 - 5, startY + 3);
                     line(x1 - 5, startY + 3, x1 + 5, startY + 8);
@@ -400,10 +426,11 @@ public class CircuitVisionRunner extends PApplet
                 {
                     int x0 = Math.min(x1, x2);
                     translate(x0 + gridSpacing / 2, y1);
-                    
+
                     textAlign(CENTER);
+                    textSize(12);
                     text( Double.toString( ((Battery)c).getVoltage() ), 0, -12 );
-                    
+
                     if (Math.min(c.getEndPt1().getCol(), c.getEndPt2().getCol()) == ((Battery)c).getPosEnd().getCol())
                     {
                         rotate(PI);
@@ -413,10 +440,11 @@ public class CircuitVisionRunner extends PApplet
                 {
                     int y0 = Math.min(y1, y2);
                     translate(x1, y0 + gridSpacing / 2);
-                    
+
                     textAlign(RIGHT);
+                    textSize(12);
                     text( Double.toString( ((Battery)c).getVoltage() ), -11, 4 );
-                    
+
                     if (Math.min(c.getEndPt1().getRow(), c.getEndPt2().getRow()) == ((Battery)c).getPosEnd().getRow())
                     {
                         rotate(-PI / 2);
