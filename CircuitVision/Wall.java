@@ -17,6 +17,7 @@ public class Wall
     private List<Ball> balls;
     private int numBalls;
     private Wheel myWheel;
+    private Tower batteryPosEnd;
 
     public Wall(PApplet animationWindow, Tower upstreamTower, Tower downstreamTower, double current_)
     {
@@ -37,6 +38,7 @@ public class Wall
         balls = new ArrayList<Ball>();
         numBalls = Animation.BALLS_PER_WALL;
         myWheel = null;
+        batteryPosEnd = null;
     }
 
     public void display()
@@ -143,6 +145,11 @@ public class Wall
         }
         myWheel = new Wheel(win2, spinDirection * current);
     }
+    
+    public void addSkiLift(Tower posEnd)
+    {
+        batteryPosEnd = posEnd;
+    }
 
     public void addNewBall(float x)
     {
@@ -162,5 +169,10 @@ public class Wall
     public Tower getT2()
     {
         return t2;
+    }
+    
+    public Tower getPosEnd()
+    {
+        return batteryPosEnd;
     }
 }

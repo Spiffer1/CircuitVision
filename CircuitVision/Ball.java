@@ -55,9 +55,22 @@ public class Ball
         }
         // draw sphere at appropriate height (tower or wall height)
         win2.translate(x, -RADIUS, 0);
-        //System.out.println(x);
         win2.sphere(RADIUS);
 
+        // draw Ski lifts to push balls through batteries
+        if (myWall.getPosEnd() != null)     // if this wall is a Battery...
+        {
+            //Draw elevator (box) behind sphere
+            if ( myWall.getT2().equals(myWall.getPosEnd()) )  // if positive Terminal is on the right...
+            {
+                win2.translate(-RADIUS, 0, 0);
+            }
+            else        // if positive terminal is on the left...
+            {
+                win2.translate(RADIUS, 0, 0);
+            }
+            win2.box( 5, (int)(1.5 * RADIUS), (int)(1.5 * RADIUS) );
+        }
         win2.popMatrix();
     }
 

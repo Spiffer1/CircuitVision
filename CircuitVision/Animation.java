@@ -79,10 +79,10 @@ public class Animation
             }
         }
 
-        // Construct water wheels for each resistor
+        // Construct water wheels for each resistor and SkiLift for each battery
         for (Component c : circuit.getComponents())
         {
-            if (c instanceof Resistor)
+            if (c instanceof Resistor || c instanceof Battery)
             {
                 // Find corresponding wall
                 Tower t1 = findTowerAtLocation(c.getEndPt1().getRow(), c.getEndPt1().getCol());
@@ -91,7 +91,15 @@ public class Animation
                 {
                     if (w.getT1().equals(t1) && w.getT2().equals(t2) || w.getT2().equals(t1) && w.getT1().equals(t2))
                     {
-                        w.addWheel();
+                        if (c instanceof Resistor)
+                        {
+                            w.addWheel();
+                        }
+                        else
+                        {
+                            Tower posEnd = findTowerAtLocation( ((Battery)c).getPosEnd().getRow(), ((Battery)c).getPosEnd().getCol() );
+                            w.addSkiLift(posEnd);
+                        }
                         break;
                     }
                 }
