@@ -214,16 +214,45 @@ public class CircuitVisionRunner extends PApplet
                 if (c instanceof Resistor)
                 {
                     // joption pane to get resistance
+                    int r = c.getResistance();
+                    String input = JOptionPane.showInputDialog("Enter Resistance in ohms:", Integer.toString(r));
+                    if (input != null)
+                    {
+                        try
+                        {
+                            r = Integer.parseInt(input);
+                        }
+                        catch (NumberFormatException e)
+                        {
+                            // does nothing, so resistance is unchanged
+                        }
+                        c.setResistance (r);
+                    }
                 }
                 if (c instanceof Battery)
                 {
                     // joptionpane to get voltage
+                    double v = ((Battery)c).getVoltage();
+                    String input = JOptionPane.showInputDialog("Enter Voltage in Volts:", Double.toString(v));
+                    if (input != null)
+                    {
+                        try
+                        {
+                            v = Double.parseDouble(input);
+                        }
+                        catch (NumberFormatException e)
+                        {
+                            // does nothing, so Voltage stays as it is
+                        }
+                        ((Battery)c).setVoltage(v);
+                    }
                 }
             }
             else if (c == null)
             {
                 if (circuitMode == 1)
                 {
+                    // (Maybe) Add ControlP5 text field beside or above resistor
                     circuit.addComponent(new Resistor(10), r1, c1, r2, c2);
                 }
                 if (circuitMode == 2)
@@ -337,6 +366,8 @@ public class CircuitVisionRunner extends PApplet
                 if (y1 == y2) // horizontal resistor
                 {
                     int startX = Math.min(x1, x2) + (gridSpacing - 26) / 2;
+                    textAlign(CENTER);
+                    text(c.getResistance(), startX + 13, y1 - 10);
                     line(startX, y1, startX + 3, y1 - 5);
                     line(startX + 3, y1 - 5, startX + 8, y1 + 5);
                     line(startX + 8, y1 + 5, startX + 13, y1 - 5);
@@ -349,6 +380,8 @@ public class CircuitVisionRunner extends PApplet
                 else  // vertical resistor
                 {
                     int startY = Math.min(y1, y2) + (gridSpacing - 26) / 2;
+                    textAlign(RIGHT);
+                    text(c.getResistance(), x1 - 8, startY + 17);
                     line(x1, startY, x1 - 5, startY + 3);
                     line(x1 - 5, startY + 3, x1 + 5, startY + 8);
                     line(x1 + 5, startY + 8, x1 - 5, startY + 13);
@@ -367,6 +400,10 @@ public class CircuitVisionRunner extends PApplet
                 {
                     int x0 = Math.min(x1, x2);
                     translate(x0 + gridSpacing / 2, y1);
+                    
+                    textAlign(CENTER);
+                    text( Double.toString( ((Battery)c).getVoltage() ), 0, -12 );
+                    
                     if (Math.min(c.getEndPt1().getCol(), c.getEndPt2().getCol()) == ((Battery)c).getPosEnd().getCol())
                     {
                         rotate(PI);
@@ -376,6 +413,10 @@ public class CircuitVisionRunner extends PApplet
                 {
                     int y0 = Math.min(y1, y2);
                     translate(x1, y0 + gridSpacing / 2);
+                    
+                    textAlign(RIGHT);
+                    text( Double.toString( ((Battery)c).getVoltage() ), -11, 4 );
+                    
                     if (Math.min(c.getEndPt1().getRow(), c.getEndPt2().getRow()) == ((Battery)c).getPosEnd().getRow())
                     {
                         rotate(-PI / 2);

@@ -69,6 +69,14 @@ abstract public class Component
     }
 
     /**
+     *  Sets a component's resistance. Used as components are added to a circuit.
+     */
+    public void setResistance(int r)
+    {
+        resistance = r;
+    }
+    
+    /**
      * After a circuit has been solved, this method is used to update the components' currents.
      */
     public void setCurrent(double i)
