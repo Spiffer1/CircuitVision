@@ -6,11 +6,10 @@
  * Once a complete circuit has been constructed, the user can click the "Animate Model"
  * button and an animated 3D model of the circuit will display in a second window.
  * 
- * This version is a first pass at the GUI. The "Show Info" button is not yet
- * implemented.
+ * Code written by Sean Fottrell
+ * November 14, 2014
  * 
- * by Sean Fottrell
- * September 1, 2014
+ * Concept based on CircuitVision by Benjamin Lai, circa 1992
  */
 
 import javax.swing.JOptionPane;
@@ -46,8 +45,9 @@ public class CircuitVisionRunner extends PApplet
     private boolean showValues;
     private int circuitMode;    // 1: add resistor; 2: add wire; 3: add battery; 4: remove component; 0: no mode selected
 
-    // "Animate Model" button coordinates
+    // "Animate Model" button coordinates and "Show Values" button coordinates
     private int animLeft, animRight, animTop, animBottom;
+    private int showValLeft, showValRight, showValTop, showValBottom;
 
     // to make a second window...
     private SecondApplet win2;
@@ -83,10 +83,14 @@ public class CircuitVisionRunner extends PApplet
         }
 
         // Add buttons
+        showValLeft = 20;
+        showValTop = 320;
+        showValRight = showValLeft + 80;   // width = 80
+        showValBottom = showValTop + 30;   // height = 30
         cp5 = new ControlP5(this);
         cp5.addToggle("showValues")
-        .setPosition(20, 320)
-        .setSize(80, 30)
+        .setPosition(showValLeft, showValTop)
+        .setSize(showValRight - showValLeft, showValBottom - showValTop)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
             //.setFont(fontMed)
@@ -138,19 +142,19 @@ public class CircuitVisionRunner extends PApplet
         ;
 
         // Create a default circuit for testing. This can be eliminated to start with a blank grid.
-        circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
-        circuit.addComponent(new Wire(), 1, 0, 1, 1);
-        circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
-        circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
-        circuit.addComponent(new Wire(), 2, 1, 2, 0);
-        circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
-
-        circuit.addComponent(new Wire(), 1, 2, 2, 2);
-        circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
-
-        circuit.addComponent(new Resistor(8), 2, 2, 2, 3);   // a dead-end
-        circuit.addComponent(new Wire(), 2, 3, 1, 3);
-        circuit.addComponent(new Battery(4), 1, 2, 1, 3);   // defaults to making the first coordinates the pos. end
+        //         circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
+        //         circuit.addComponent(new Wire(), 1, 0, 1, 1);
+        //         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
+        //         circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
+        //         circuit.addComponent(new Wire(), 2, 1, 2, 0);
+        //         circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
+        // 
+        //         circuit.addComponent(new Wire(), 1, 2, 2, 2);
+        //         circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
+        // 
+        //         circuit.addComponent(new Resistor(8), 2, 2, 2, 3);   // a dead-end
+        //         circuit.addComponent(new Wire(), 2, 3, 1, 3);
+        //         circuit.addComponent(new Battery(4), 1, 2, 1, 3);   // defaults to making the first coordinates the pos. end
 
         //circuit.addComponent(new Wire(), 1, 1, 1, 2);
         //circuit.addComponent(new Wire(), 3, 0, 2, 0);
@@ -168,7 +172,8 @@ public class CircuitVisionRunner extends PApplet
     {
         int mX = mouseX;
         int mY = mouseY;
-        if ( !(mX > animLeft && mX < animRight && mY > animTop && mY < animBottom) ) // not on animate button
+        if ( !((mX > animLeft && mX < animRight && mY > animTop && mY < animBottom)
+             || (mX > showValLeft && mX < showValRight && mY > showValTop && mY < showValBottom)) ) // not on animate button or Show Values button
         {
             animating = false;
         }
@@ -261,7 +266,7 @@ public class CircuitVisionRunner extends PApplet
                 }
                 if (circuitMode == 3)
                 {
-                    circuit.addBattery(new Battery(12), r1, c1, r2, c2, r1, c1);  // pos end is dot closest to click 
+                    circuit.addBattery(new Battery(6), r1, c1, r2, c2, r1, c1);  // pos end is dot closest to click 
                 }
             }
         }
