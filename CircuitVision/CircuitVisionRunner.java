@@ -173,7 +173,7 @@ public class CircuitVisionRunner extends PApplet
         int mX = mouseX;
         int mY = mouseY;
         if ( !((mX > animLeft && mX < animRight && mY > animTop && mY < animBottom)
-             || (mX > showValLeft && mX < showValRight && mY > showValTop && mY < showValBottom)) ) // not on animate button or Show Values button
+            || (mX > showValLeft && mX < showValRight && mY > showValTop && mY < showValBottom)) ) // not on animate button or Show Values button
         {
             animating = false;
         }
@@ -388,6 +388,7 @@ public class CircuitVisionRunner extends PApplet
             int y2 = gridY + c.getEndPt2().getRow() * gridSpacing;
             if (c instanceof Wire)
             {
+                stroke(0);
                 line(x1, y1, x2, y2);
             }
             else if (c instanceof Resistor)
@@ -395,9 +396,14 @@ public class CircuitVisionRunner extends PApplet
                 if (y1 == y2) // horizontal resistor
                 {
                     int startX = Math.min(x1, x2) + (gridSpacing - 26) / 2;
+                    // Display Resistance
                     textAlign(CENTER);
                     textSize(12);
+                    fill(0);
                     text(c.getResistance(), startX + 13, y1 - 10);
+
+                    // Draw resistor
+                    stroke(0);
                     line(startX, y1, startX + 3, y1 - 5);
                     line(startX + 3, y1 - 5, startX + 8, y1 + 5);
                     line(startX + 8, y1 + 5, startX + 13, y1 - 5);
@@ -412,7 +418,9 @@ public class CircuitVisionRunner extends PApplet
                     int startY = Math.min(y1, y2) + (gridSpacing - 26) / 2;
                     textAlign(RIGHT);
                     textSize(12);
+                    fill(0);
                     text(c.getResistance(), x1 - 8, startY + 17);
+                    stroke(0);
                     line(x1, startY, x1 - 5, startY + 3);
                     line(x1 - 5, startY + 3, x1 + 5, startY + 8);
                     line(x1 + 5, startY + 8, x1 - 5, startY + 13);
@@ -434,6 +442,7 @@ public class CircuitVisionRunner extends PApplet
 
                     textAlign(CENTER);
                     textSize(12);
+                    fill(0);
                     text( Double.toString( ((Battery)c).getVoltage() ), 0, -12 );
 
                     if (Math.min(c.getEndPt1().getCol(), c.getEndPt2().getCol()) == ((Battery)c).getPosEnd().getCol())
@@ -448,6 +457,7 @@ public class CircuitVisionRunner extends PApplet
 
                     textAlign(RIGHT);
                     textSize(12);
+                    fill(0);
                     text( Double.toString( ((Battery)c).getVoltage() ), -11, 4 );
 
                     if (Math.min(c.getEndPt1().getRow(), c.getEndPt2().getRow()) == ((Battery)c).getPosEnd().getRow())
@@ -460,11 +470,75 @@ public class CircuitVisionRunner extends PApplet
                     }
                 }
                 // draw battery
+                stroke(0);
                 line(-gridSpacing / 2, 0, -3, 0);
                 line(3, 0, gridSpacing / 2, 0);
                 line(-3, -4, -3, 4);
                 line(3, -8, 3, 8);
                 popMatrix();
+            }
+            // Show current
+            if (showValues && Math.abs(c.getCurrent()) > .00000001)
+            {
+                boolean end1Arrow = true;     // arrow end closer to EndPoint1
+                int biggerEnd2 = 1;   // = -1 if x1 > x2
+                int left = 1;   // if left = -1: arrow points right/down; if left = 1, arrow points left/up
+                if (c.getCurrentDirection().equals(c.getEndPt2()))
+                {
+                    end1Arrow = !end1Arrow;
+                    left *= -1;
+                }
+                if (x1 > x2 || y1 > y2)
+                {
+                    biggerEnd2 *= -1;
+                    left *=-1;
+                }
+                if (c.getCurrent() < 0)
+                {
+                    end1Arrow = !end1Arrow;
+                    left *= -1;
+                }
+                stroke(255);
+                fill(255);
+                textSize(10);
+                double current = Math.abs(c.getCurrent());
+                current = (int)(current * 100 + 0.5) / 100.0;
+                if (y1 == y2)   // a horizontal component
+                {
+                    // Draw current arrow
+                    line(x1 + biggerEnd2 * 25, y1 + 10, x2 - biggerEnd2 * 25, y1 + 10);
+                    if (end1Arrow)
+                    {
+                        line(x1 + left * 25, y1 + 10, x1 + left * 28, y1 + 13);
+                        line(x1 + left * 25, y1 + 10, x1 + left * 28, y1 + 7);
+                    }
+                    else
+                    {
+                        line(x2 + left * 25, y1 + 10, x2 + left * 28, y1 + 13);
+                        line(x2 + left * 25, y1 + 10, x2 + left * 28, y1 + 7);
+                    }
+                    // Display number of amps
+                    textAlign(CENTER);
+                    text( Double.toString(current) + " A", (x1 + x2) / 2, y1 + 23 );
+                }
+                else    // a vertical component
+                {
+                    // Draw current arrow
+                    line(x1 + 10, y1 + biggerEnd2 * 25, x1 + 10, y2 - biggerEnd2 * 25);
+                    if (end1Arrow)
+                    {
+                        line(x1 + 10, y1 + left * 25, x1 + 7, y1 + left * 28);
+                        line(x1 + 10, y1 + left * 25, x1 + 13, y1 + left * 28);                        
+                    }
+                    else
+                    {
+                        line(x2 + 10, y2 + left * 25, x2 + 7, y2 + left * 28);
+                        line(x2 + 10, y2 + left * 25, x2 + 13, y2 + left * 28);
+                    }
+                    // Display number of amps
+                    textAlign(LEFT);
+                    text( Double.toString(current) + " A", x1 + 13, (y1 + y2) / 2 + 5 );
+                }
             }
         }
     }

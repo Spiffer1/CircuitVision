@@ -197,28 +197,6 @@ public class Circuit
                 }
             }
             constants[eqnNum] = 0;
-
-            //  Code below works, but is more complicated that the code above
-            //             for (int branch = 0; branch < numBranches; branch++)
-            //             {
-            //                 int currentFlux = 0;
-            //                 for (Component c : nodes.get(eqnNum).getConnections())      // loops through all components connected to this node...
-            //                 {
-            //                     if (c.getBranch() == branch)                            // get the coefficient for each branch/current variable...
-            //                     {
-            //                         if (c.getCurrentDirection().equals(nodes.get(eqnNum)))  // if the current direction of this component is
-            //                         {                                                       // the same as the node, then current is flowing
-            //                             currentFlux++;                                      // into the node
-            //                         }
-            //                         else
-            //                         {
-            //                             currentFlux--;                                      // otherwise it's flowing out of the node
-            //                         }
-            //                     }
-            //                 }
-            //                 coefficients[eqnNum][branch] = currentFlux;
-            //             }
-
         }
         // Get equations from loops
         int nodeEqns = eqnNum;
@@ -248,38 +226,6 @@ public class Circuit
                 }
             }
 
-            // Original working code is below; code above is an easier to read replacement...
-            //             for (int branch = 0; branch < numBranches; branch++)    // For each current variable in that loop equation...
-            //             {
-            //                 double voltageDrop = 0;
-            //                 for (int i = 0; i < loops.get(eqnNum - nodeEqns).size() - 1; i++)   // add voltage drops from each component in the loop
-            //                 {                                                                   // (except the last one, which is a repeat of the first)
-            //                     Component c = loops.get(eqnNum - nodeEqns).get(i);
-            //                     Component nextComponent = loops.get(eqnNum - nodeEqns).get(i + 1);
-            //                     if (c.getBranch() == branch)
-            //                     {
-            //                         boolean connectedToNextComponent = false;
-            //                         for (Component aConnectedComponent : c.getCurrentDirection().getConnections()) // Test whether the currentDirection
-            //                         {                                       // end of the component is connected to the next component in the loop...
-            //                             if (nextComponent.equals(aConnectedComponent))
-            //                             {
-            //                                 connectedToNextComponent = true;
-            //                             }
-            //                         }
-            //                         if (connectedToNextComponent)   // If so you are walking around the loop in the component's current direction
-            //                         {                               // so you add the voltage drop.
-            //                             voltageDrop += c.getResistance();
-            //                         }
-            //                         else                            // Walking around loop opposite the "labeled" current direction,
-            //                         {
-            //                             voltageDrop -= c.getResistance();   // so it's a "negative" current and you subtract the voltage drop.
-            //                         }
-            //                     }
-            //                 }
-            //                 coefficients[eqnNum][branch] = voltageDrop;
-            //             }
-            
-            
             // The constant term in each loop equation is due to a Voltage gain from a battery. Let's find these
             double voltageGain = 0;
             for (int i = 0; i < loops.get(eqnNum - nodeEqns).size() - 1; i++)   // go through all components in loop except last one (a repeat of the first)
