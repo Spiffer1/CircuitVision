@@ -2,11 +2,19 @@ import java.awt.Frame;
 
 import processing.core.PApplet;
 
+/**
+ * Proof of Concept to make two Processing windows appear
+ */
 public class TwoWindow extends PApplet {
 
 	// PFrame f;
 	secondApplet s;
 
+	public static void main(String args[]) 
+    {
+        PApplet.main(new String[] { "TwoWindow" });
+    }
+    
 	public void setup() {
 		size(320, 240);
 		frameRate(15);
