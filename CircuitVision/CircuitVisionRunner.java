@@ -40,6 +40,7 @@ public class CircuitVisionRunner extends PApplet
     private static int gridSpacing = 80;
 
     private ControlP5 cp5;
+    private boolean windowLocationSet;
     private boolean newAnimation;
     private boolean animating;
     private boolean showValues;
@@ -65,6 +66,7 @@ public class CircuitVisionRunner extends PApplet
         size(600,400);
         smooth();
 
+        windowLocationSet = false;
         newAnimation = false;
         animating = false;
         showValues = false;
@@ -141,20 +143,20 @@ public class CircuitVisionRunner extends PApplet
         .setText("Remove Component")
         ;
 
-        // Create a default circuit for testing. This can be eliminated to start with a blank grid.
-        //         circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
-        //         circuit.addComponent(new Wire(), 1, 0, 1, 1);
-        //         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
-        //         circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
-        //         circuit.addComponent(new Wire(), 2, 1, 2, 0);
-        //         circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
-        // 
-        //         circuit.addComponent(new Wire(), 1, 2, 2, 2);
-        //         circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
-        // 
-        //         circuit.addComponent(new Resistor(8), 2, 2, 2, 3);   // a dead-end
-        //         circuit.addComponent(new Wire(), 2, 3, 1, 3);
-        //         circuit.addComponent(new Battery(4), 1, 2, 1, 3);   // defaults to making the first coordinates the pos. end
+        //Create a default circuit for testing. This can be eliminated to start with a blank grid.
+//         circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
+//         circuit.addComponent(new Wire(), 1, 0, 1, 1);
+//         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
+//         circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
+//         circuit.addComponent(new Wire(), 2, 1, 2, 0);
+//         circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
+// 
+//         circuit.addComponent(new Wire(), 1, 2, 2, 2);
+//         circuit.addComponent(new Resistor(4), 2, 2, 2, 1);
+// 
+//         circuit.addComponent(new Resistor(8), 2, 2, 2, 3);   // a dead-end
+//         circuit.addComponent(new Wire(), 2, 3, 1, 3);
+//         circuit.addComponent(new Battery(4), 1, 2, 1, 3);   // defaults to making the first coordinates the pos. end
 
         //circuit.addComponent(new Wire(), 1, 1, 1, 2);
         //circuit.addComponent(new Wire(), 3, 0, 2, 0);
@@ -163,6 +165,11 @@ public class CircuitVisionRunner extends PApplet
 
     public void draw()
     {
+        if (!windowLocationSet)
+        {
+            frame.setLocation(550, 0);
+            windowLocationSet = true;
+        }
         background(150);
         drawCircuit();
     }
@@ -543,13 +550,13 @@ public class CircuitVisionRunner extends PApplet
         }
     }
 
-    int win2width = 600;
+    int win2width = 500;
     int win2height = 400;
     public class PFrame extends Frame 
     {
         public PFrame() 
         {
-            setBounds(0, 20, win2width, win2height);
+            setBounds(0, 0, win2width, win2height);
             win2 = new SecondApplet();
             add(win2);
             win2.init();

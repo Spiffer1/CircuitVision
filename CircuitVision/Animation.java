@@ -13,8 +13,8 @@ import processing.core.PApplet;
 public class Animation
 {
     // following constants locate and scale the animation within its window
-    public static int ORIGIN_X = 200;
-    public static int ORIGIN_Y = 200;
+    public static int ORIGIN_X;
+    public static int ORIGIN_Y;
     public static int ORIGIN_Z = -100;
     public static int VOLT_SCALE = 10;
     public static int WALL_WID = 16;
@@ -109,9 +109,18 @@ public class Animation
 
     public void displayAnimation()
     {
+        ORIGIN_X = win2.width / 4;
+        ORIGIN_Y = win2.height / 2;
         win2.translate(ORIGIN_X, ORIGIN_Y, ORIGIN_Z);
         win2.rotateX(-win2.PI / 6);
-        win2.rotateY(-win2.PI / 6);
+
+        // Enable rotation of the animation by moving mouse over its window
+        win2.translate((int)(gridSpacing * 1.5), 0, (int)(gridSpacing * 1.5));
+        win2.rotateY(win2.map(win2.mouseX, 0, win2.width, -win2.PI*(float)2.2, -win2.PI/6));
+        win2.translate(-(int)(gridSpacing * 1.5), 0, -(int)(gridSpacing * 1.5));
+
+        //win2.rotateY(-win2.PI / 6);   // standard viewing angle if not using mouse rotation (above)
+
         for (Tower t : towers)
         {
             t.display();
