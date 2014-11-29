@@ -13,8 +13,8 @@ import processing.core.PApplet;
 public class Animation
 {
     // following constants locate and scale the animation within its window
-    public static int ORIGIN_X;
-    public static int ORIGIN_Y;
+    public static int ORIGIN_X; // set within displayAnimation() to keep model centered
+    public static int ORIGIN_Y; // set within displayAnimation()
     public static int ORIGIN_Z = -100;
     public static int VOLT_SCALE = 10;
     public static int WALL_WID = 16;
@@ -22,6 +22,7 @@ public class Animation
     public static int BALLS_PER_WALL = 3;
     public static float SPEED = (float).5; // scale factor for ball speed and water wheel speed
 
+    private boolean autoScale;
     private int gridSpacing;
     private PApplet win2;
     private Circuit circuit;
@@ -40,6 +41,38 @@ public class Animation
         WALL_LEN = gridSpacing - WALL_WID;
         numRows = terminalRows;
         numCols = terminalCols;
+        autoScale = true;
+
+        // Scale the Animation display
+        if (autoScale)
+        {
+            double maxPotential = 0;
+            for (int row = 0; row < numRows; row++)
+            {
+                for (int col = 0; col < numCols; col++)
+                {
+                    Terminal term = circuit.getTerminal(row, col);
+                    double v = term.getPotential();
+                    if (v < Double.MAX_VALUE && v > maxPotential)
+                    {
+                        maxPotential = term.getPotential();
+                    }
+                }
+            }
+            double maxBattVolts = 0;
+            for (Component c : circuit.getComponents())
+            {
+                if (c instanceof Battery)
+                {
+                    if ( ((Battery)c).getVoltage() > maxBattVolts)
+                    {
+                        maxBattVolts = ((Battery)c).getVoltage();
+                    }
+                }
+            }
+            VOLT_SCALE = (int)(CircuitVisionRunner.win2height / (2 * maxPotential));
+            VOLT_SCALE = (int)Math.min(VOLT_SCALE, 100 / maxBattVolts);
+        }
 
         // Construct arrayList of Towers
         for (int row = 0; row < numRows; row++)
