@@ -45,6 +45,9 @@ public class CircuitVisionRunner extends PApplet
     private boolean animating;
     private boolean showValues;
     private int circuitMode;    // 1: add resistor; 2: add wire; 3: add battery; 4: remove component; 0: no mode selected
+    private boolean scaleVolts;     // sets autoscaling by a toggle in PreferencesApplet
+    private int voltScale;
+    private boolean rotationEnabled; 
 
     // "Animate Model" button coordinates and "Show Values" button coordinates
     private int animLeft, animRight, animTop, animBottom;
@@ -52,6 +55,11 @@ public class CircuitVisionRunner extends PApplet
 
     // to make a second window...
     private SecondApplet win2;
+    // to make a Preferences Window...
+    private Frame prefsFrame;
+    private PreferencesApplet prefs;
+    private boolean showPrefs;  // makes Preferences window visible
+    private boolean prevShowValue;
 
     // make 2D array of Dot objects: the terminals shown on the screen
     private Dot[][] dots = new Dot[terminalRows][terminalCols];
@@ -70,7 +78,12 @@ public class CircuitVisionRunner extends PApplet
         newAnimation = false;
         animating = false;
         showValues = false;
+        showPrefs = false;
         circuitMode = 0;
+        rotationEnabled = false;
+        voltScale = 10;
+
+        prefs = addPreferencesFrame();
 
         // make new Circuit object
         circuit = new Circuit(terminalRows, terminalCols);
@@ -84,12 +97,17 @@ public class CircuitVisionRunner extends PApplet
             }
         }
 
+        /* ***************************************************************************
+         * 
+         * Add ControlP5 buttons to the circuit window
+         * 
+         *****************************************************************************/
+        cp5 = new ControlP5(this);
         // Add buttons
         showValLeft = 20;
         showValTop = 320;
         showValRight = showValLeft + 80;   // width = 80
         showValBottom = showValTop + 30;   // height = 30
-        cp5 = new ControlP5(this);
         cp5.addToggle("showValues")
         .setPosition(showValLeft, showValTop)
         .setSize(showValRight - showValLeft, showValBottom - showValTop)
@@ -111,8 +129,16 @@ public class CircuitVisionRunner extends PApplet
         .setText("Animate Model")
         ;
 
+        cp5.addToggle("showPrefs")  // Clicking this button will toggle the value of the global boolean variable, showPrefs
+        .setPosition(35, 10)
+        .setSize(50, 25)
+        .getCaptionLabel()
+        .align(ControlP5.CENTER, ControlP5.CENTER)
+        .setText("Prefs")
+        ;
+
         cp5.addToggle("resistorMode")
-        .setPosition(20, 50)
+        .setPosition(20, 70)
         .setSize(80, 30)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
@@ -120,7 +146,7 @@ public class CircuitVisionRunner extends PApplet
         ;
 
         cp5.addToggle("wireMode")
-        .setPosition(20, 100)
+        .setPosition(20, 120)
         .setSize(80, 30)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
@@ -128,7 +154,7 @@ public class CircuitVisionRunner extends PApplet
         ;
 
         cp5.addToggle("batteryMode")
-        .setPosition(20, 150)
+        .setPosition(20, 170)
         .setSize(80, 30)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
@@ -136,7 +162,7 @@ public class CircuitVisionRunner extends PApplet
         ;
 
         cp5.addToggle("removeMode")
-        .setPosition(20, 200)
+        .setPosition(20, 220)
         .setSize(80, 30)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
@@ -144,11 +170,10 @@ public class CircuitVisionRunner extends PApplet
         ;
 
         //Create a default circuit for testing. This can be eliminated to start with a blank grid.
-        //         circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
-        //         circuit.addComponent(new Wire(), 1, 0, 1, 1);
-        //         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
-        //         circuit.addComponent(new Resistor(9), 1, 1, 2, 1);  // Test adding component where one already exists (shouldn't add it)
-        //         circuit.addComponent(new Wire(), 2, 1, 2, 0);
+        circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
+        circuit.addComponent(new Wire(), 1, 0, 1, 1);
+        circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
+        circuit.addComponent(new Wire(), 2, 1, 2, 0);
         //         circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
         // 
         //         circuit.addComponent(new Wire(), 1, 2, 2, 2);
@@ -160,6 +185,7 @@ public class CircuitVisionRunner extends PApplet
 
         //circuit.addComponent(new Wire(), 1, 1, 1, 2);
         //circuit.addComponent(new Wire(), 3, 0, 2, 0);
+
         new PFrame();
     }
 
@@ -172,6 +198,21 @@ public class CircuitVisionRunner extends PApplet
         }
         background(150);
         drawCircuit();
+    }
+
+    public PreferencesApplet addPreferencesFrame()
+    {
+        int width = 300;
+        int height = 300;
+        prefsFrame = new Frame("Preferences");
+        PreferencesApplet prefApp = new PreferencesApplet(width, height);
+        prefsFrame.add(prefApp);
+        prefApp.init();
+        prefsFrame.setTitle("Preferences");
+        prefsFrame.setSize(width, height);
+        prefsFrame.setLocation(0, 450);
+        prefsFrame.setVisible(showPrefs);
+        return prefApp;
     }
 
     // If mouse clicked in circuit area, add (or remove) component
@@ -368,8 +409,8 @@ public class CircuitVisionRunner extends PApplet
         else 
         {
             newAnimation = true;
+            animating = true;
         }
-        animating = true;
     }
 
     public void drawCircuit()
@@ -584,7 +625,8 @@ public class CircuitVisionRunner extends PApplet
             {
                 if (newAnimation)
                 {
-                    anim = new Animation(this, circuit, gridSpacing, terminalRows, terminalCols);
+                    anim = new Animation(this, circuit, gridSpacing, terminalRows, terminalCols, scaleVolts, voltScale, rotationEnabled);
+                    voltScale = anim.VOLT_SCALE;
                     newAnimation = false;
                 }
                 ortho();
@@ -592,6 +634,104 @@ public class CircuitVisionRunner extends PApplet
                 fill(255);
                 anim.displayAnimation();
                 redraw();
+            }
+        }
+    }
+
+    public class PreferencesApplet extends PApplet
+    {
+        private int w;
+        private int h;
+        private ControlP5 prefsCp5;
+        Textfield voltScaleField;
+
+        public PreferencesApplet(int width, int height)
+        {
+            w = width;
+            h = height;
+            scaleVolts = false;
+        }
+
+        public void setup()
+        {
+            size(w, h);
+            frameRate(25);
+            prefsCp5 = new ControlP5(this);
+
+            prefsCp5.addToggle("autoScaleVolts")
+            .setPosition(20, 50)
+            .setSize(120, 30)
+            .getCaptionLabel()
+            .align(ControlP5.CENTER, ControlP5.CENTER)
+            .setText("Autoscale Voltage")
+            ;
+
+            prefsCp5.addToggle("enableRotation")
+            .setPosition(20, 90)
+            .setSize(120, 30)
+            .setValue(rotationEnabled)
+            .getCaptionLabel()
+            .align(ControlP5.CENTER, ControlP5.CENTER)
+            .setText("Enable 3D Rotation")
+            ;
+
+            voltScaleField = prefsCp5.addTextfield("vScale")
+            .setPosition(180, 50)
+            .setSize(30, 20)
+            .setAutoClear(false)
+            .setValue(Integer.toString(voltScale))
+            ;
+        }
+
+        public void draw()
+        {
+            if (showPrefs != prevShowValue)
+            {
+                prefsFrame.setVisible(showPrefs);
+                prevShowValue = showPrefs;
+            }
+            if (scaleVolts && !Integer.toString(voltScale).equals(voltScaleField.getText()))
+            {
+                voltScaleField.setValue(Integer.toString(voltScale));
+            }
+        }
+
+        public void autoScaleVolts(boolean on)
+        {
+            if (on)
+            {
+                scaleVolts = true;
+            }
+            else
+            {
+                scaleVolts = false;
+            }
+            newAnimation = true;
+        }
+
+        public void enableRotation(boolean on)
+        {
+            if (on)
+            {
+                rotationEnabled = true;
+            }
+            else
+            {
+                rotationEnabled = false;
+            }
+            newAnimation = true;
+        }      
+
+        public void vScale(String volts)
+        {
+            try 
+            {
+                voltScale = Integer.parseInt(volts);
+                newAnimation = true;
+            }
+            catch (NumberFormatException e)
+            {
+                System.out.println("Volt Scale must be an integer.");
             }
         }
     }

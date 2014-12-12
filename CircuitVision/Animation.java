@@ -16,13 +16,14 @@ public class Animation
     public static int ORIGIN_X; // set within displayAnimation() to keep model centered
     public static int ORIGIN_Y; // set within displayAnimation()
     public static int ORIGIN_Z = -100;
-    public static int VOLT_SCALE = 10;
+    public static int VOLT_SCALE;
     public static int WALL_WID = 16;
     public static int WALL_LEN;     // defaults to gridSpacing - WALL_WID
     public static int BALLS_PER_WALL = 3;
     public static float SPEED = (float).5; // scale factor for ball speed and water wheel speed
 
-    private boolean autoScale;
+    private boolean autoScaleVolts;
+    private boolean rotationEnabled;
     private int gridSpacing;
     private PApplet win2;
     private Circuit circuit;
@@ -31,7 +32,7 @@ public class Animation
     private int numRows;
     private int numCols;
 
-    public Animation(PApplet animationWindow, Circuit circ, int terminalSpacing, int terminalRows, int terminalCols)
+    public Animation(PApplet animationWindow, Circuit circ, int terminalSpacing, int terminalRows, int terminalCols, boolean scaleV, int voltScale, boolean rotatable)
     {
         win2 = animationWindow;
         circuit = circ;
@@ -41,10 +42,11 @@ public class Animation
         WALL_LEN = gridSpacing - WALL_WID;
         numRows = terminalRows;
         numCols = terminalCols;
-        autoScale = true;
+        autoScaleVolts = scaleV;
+        rotationEnabled = rotatable;
 
         // Scale the Animation display
-        if (autoScale)
+        if (autoScaleVolts)
         {
             double maxPotential = 0;
             for (int row = 0; row < numRows; row++)
@@ -70,8 +72,13 @@ public class Animation
                     }
                 }
             }
-            VOLT_SCALE = (int)(CircuitVisionRunner.win2height / (2 * maxPotential));
-            VOLT_SCALE = (int)Math.min(VOLT_SCALE, 100 / maxBattVolts);
+            VOLT_SCALE = (int)(CircuitVisionRunner.win2height / (2 * maxPotential));    // limits total height of circuit to fit in window
+            VOLT_SCALE = (int)Math.min(VOLT_SCALE, 100 / maxBattVolts);     // limits max height of any one battery to 100 pixels
+            VOLT_SCALE = Math.max(VOLT_SCALE, 1);   // ensures scale is greater than 0
+        }
+        else
+        {
+            VOLT_SCALE = voltScale;
         }
 
         // Construct arrayList of Towers
@@ -147,12 +154,18 @@ public class Animation
         win2.translate(ORIGIN_X, ORIGIN_Y, ORIGIN_Z);
         win2.rotateX(-win2.PI / 6);
 
-        // Enable rotation of the animation by moving mouse over its window
-        win2.translate((int)(gridSpacing * 1.5), 0, (int)(gridSpacing * 1.5));
-        win2.rotateY(win2.map(win2.mouseX, 0, win2.width, -win2.PI*(float)2.2, -win2.PI/6));
-        win2.translate(-(int)(gridSpacing * 1.5), 0, -(int)(gridSpacing * 1.5));
-
-        //win2.rotateY(-win2.PI / 6);   // standard viewing angle if not using mouse rotation (above)
+        //Translate to center of Animation window and then rotate around y axis
+        win2.translate(gridSpacing * (numCols - 1) / 2, 0, gridSpacing * (numRows - 1) / 2);
+        if (rotationEnabled)
+        {
+            // Enable rotation of the animation by moving mouse over its window
+            win2.rotateY(win2.map(win2.mouseX, 0, win2.width, -win2.PI*(float)2.2, -win2.PI/6));
+        }
+        else
+        {
+            win2.rotateY(-win2.PI / 6);   // standard viewing angle if not using mouse rotation
+        }
+        win2.translate( -gridSpacing * (numCols - 1) / 2, 0, -gridSpacing * (numRows - 1) / 2 );
 
         for (Tower t : towers)
         {
