@@ -284,20 +284,27 @@ public class CircuitVisionRunner extends PApplet
                 }
                 if (c instanceof Battery)
                 {
-                    // joptionpane to get voltage
-                    double v = ((Battery)c).getVoltage();
-                    String input = JOptionPane.showInputDialog("Enter Voltage in Volts:", Double.toString(v));
-                    if (input != null)
+                    if (minDist2 - minDist < gridSpacing / 3)   // If you click near the middle of the battery...
                     {
-                        try
+                        // ...joptionpane prompts for new voltage value
+                        double v = ((Battery)c).getVoltage();
+                        String input = JOptionPane.showInputDialog("Enter Voltage in Volts:", Double.toString(v));
+                        if (input != null)
                         {
-                            v = Double.parseDouble(input);
+                            try
+                            {
+                                v = Double.parseDouble(input);
+                            }
+                            catch (NumberFormatException e)
+                            {
+                                // does nothing, so Voltage stays as it is
+                            }
+                            ((Battery)c).setVoltage(v);
                         }
-                        catch (NumberFormatException e)
-                        {
-                            // does nothing, so Voltage stays as it is
-                        }
-                        ((Battery)c).setVoltage(v);
+                    }
+                    else    // If you click near the end of the battery...
+                    {
+                        ((Battery)c).setPosEnd(circuit.getTerminal(r1, c1));    // ...that end becomes the positive terminal
                     }
                 }
             }
