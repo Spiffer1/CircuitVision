@@ -1,6 +1,6 @@
 #BlueJ class context
-comment0.params=animationWindow\ circ\ terminalSpacing\ terminalRows\ terminalCols\ scaleV\ voltScale\ rotatable
-comment0.target=Animation(processing.core.PApplet,\ Circuit,\ int,\ int,\ int,\ boolean,\ int,\ boolean)
+comment0.params=animationWindow\ circ\ terminalSpacing\ terminalRows\ terminalCols\ scaleV\ voltScale\ scaleA\ ampScale\ rotatable
+comment0.target=Animation(processing.core.PApplet,\ Circuit,\ int,\ int,\ int,\ boolean,\ int,\ boolean,\ double,\ boolean)
 comment1.params=
 comment1.target=void\ displayAnimation()
 comment2.params=row\ col

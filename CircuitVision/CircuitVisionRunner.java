@@ -43,15 +43,19 @@ public class CircuitVisionRunner extends PApplet
     private boolean windowLocationSet;
     private boolean newAnimation;
     private boolean animating;
-    private boolean showValues;
+    private boolean showVolts;
+    private boolean showAmps;
     private int circuitMode;    // 1: add resistor; 2: add wire; 3: add battery; 4: remove component; 0: no mode selected
     private boolean scaleVolts;     // sets autoscaling by a toggle in PreferencesApplet
+    private boolean scaleAmps;
     private int voltScale;
+    private double ampScale;
     private boolean rotationEnabled; 
 
     // "Animate Model" button coordinates and "Show Values" button coordinates
     private int animLeft, animRight, animTop, animBottom;
-    private int showValLeft, showValRight, showValTop, showValBottom;
+    private int showVoltsLeft, showVoltsRight, showVoltsTop, showVoltsBottom;
+    private int showAmpsLeft, showAmpsRight, showAmpsTop, showAmpsBottom;
 
     // to make a second window...
     private SecondApplet win2;
@@ -59,7 +63,7 @@ public class CircuitVisionRunner extends PApplet
     private Frame prefsFrame;
     private PreferencesApplet prefs;
     private boolean showPrefs;  // makes Preferences window visible
-    private boolean prevShowValue;
+    private boolean prevShowPrefs;
 
     // make 2D array of Dot objects: the terminals shown on the screen
     private Dot[][] dots = new Dot[terminalRows][terminalCols];
@@ -77,11 +81,12 @@ public class CircuitVisionRunner extends PApplet
         windowLocationSet = false;
         newAnimation = false;
         animating = false;
-        showValues = false;
-        showPrefs = false;
+        showVolts = false;
+        showAmps = false;
         circuitMode = 0;
         rotationEnabled = false;
         voltScale = 10;
+        ampScale = 0.5;
 
         prefs = addPreferencesFrame();
 
@@ -104,23 +109,36 @@ public class CircuitVisionRunner extends PApplet
          *****************************************************************************/
         cp5 = new ControlP5(this);
         // Add buttons
-        showValLeft = 20;
-        showValTop = 320;
-        showValRight = showValLeft + 80;   // width = 80
-        showValBottom = showValTop + 30;   // height = 30
-        cp5.addToggle("showValues")
-        .setPosition(showValLeft, showValTop)
-        .setSize(showValRight - showValLeft, showValBottom - showValTop)
+        showVoltsLeft = 20;
+        showVoltsTop = 260;
+        showVoltsRight = showVoltsLeft + 80;   // width = 80
+        showVoltsBottom = showVoltsTop + 25;   // height = 25
+        cp5.addToggle("showVolts")
+        .setPosition(showVoltsLeft, showVoltsTop)
+        .setSize(showVoltsRight - showVoltsLeft, showVoltsBottom - showVoltsTop)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
             //.setFont(fontMed)
-        .setText("Show Values")
+        .setText("Show Volts")
+        ;
+
+        showAmpsLeft = 20;
+        showAmpsTop = 300;
+        showAmpsRight = showAmpsLeft + 80;   // width = 80
+        showAmpsBottom = showAmpsTop + 25;   // height = 25
+        cp5.addToggle("showAmps")
+        .setPosition(showAmpsLeft, showAmpsTop)
+        .setSize(showAmpsRight - showAmpsLeft, showAmpsBottom - showAmpsTop)
+        .getCaptionLabel()
+        .align(ControlP5.CENTER, ControlP5.CENTER)
+            //.setFont(fontMed)
+        .setText("Show Currents")
         ;
 
         animLeft = 20;
         animTop = 360;
         animRight = animLeft + 80;  // width = 80
-        animBottom = animTop + 30; // height = 30
+        animBottom = animTop + 25; // height = 25
         cp5.addBang("animateModel")
         .setPosition(animLeft, animTop)
         .setSize(animRight - animLeft, animBottom - animTop)
@@ -139,41 +157,41 @@ public class CircuitVisionRunner extends PApplet
 
         cp5.addToggle("resistorMode")
         .setPosition(20, 70)
-        .setSize(80, 30)
+        .setSize(80, 25)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
         .setText("Add Resistor")
         ;
 
         cp5.addToggle("wireMode")
-        .setPosition(20, 120)
-        .setSize(80, 30)
+        .setPosition(20, 110)
+        .setSize(80, 25)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
         .setText("Add Wire")
         ;
 
         cp5.addToggle("batteryMode")
-        .setPosition(20, 170)
-        .setSize(80, 30)
+        .setPosition(20, 150)
+        .setSize(80, 25)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
         .setText("Add Battery")
         ;
 
         cp5.addToggle("removeMode")
-        .setPosition(20, 220)
-        .setSize(80, 30)
+        .setPosition(20, 190)
+        .setSize(80, 25)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
         .setText("Remove Component")
         ;
 
         //Create a default circuit for testing. This can be eliminated to start with a blank grid.
-        circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
-        circuit.addComponent(new Wire(), 1, 0, 1, 1);
-        circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
-        circuit.addComponent(new Wire(), 2, 1, 2, 0);
+        //         circuit.addBattery(new Battery(6), 1, 0, 2, 0, 1, 0);  // Extra two arguments set the positive end of the battery.
+        //         circuit.addComponent(new Wire(), 1, 0, 1, 1);
+        //         circuit.addComponent(new Resistor(3), 1, 1, 2, 1);
+        //         circuit.addComponent(new Wire(), 2, 1, 2, 0);
         //         circuit.addComponent(new Resistor(5), 1, 1, 1, 2);
         // 
         //         circuit.addComponent(new Wire(), 1, 2, 2, 2);
@@ -221,7 +239,7 @@ public class CircuitVisionRunner extends PApplet
         int mX = mouseX;
         int mY = mouseY;
         if ( !((mX > animLeft && mX < animRight && mY > animTop && mY < animBottom)
-            || (mX > showValLeft && mX < showValRight && mY > showValTop && mY < showValBottom)) ) // not on animate button or Show Values button
+            || (mX > showVoltsLeft && mX < showVoltsRight && mY > showVoltsTop && mY < showVoltsBottom)) ) // not on animate button or Show Values button
         {
             animating = false;
         }
@@ -335,7 +353,8 @@ public class CircuitVisionRunner extends PApplet
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
-            ((Toggle)cp5.getController("showValues")).setState(false);
+            ((Toggle)cp5.getController("showVolts")).setState(false);
+            ((Toggle)cp5.getController("showAmps")).setState(false);            
         }
     }
 
@@ -347,7 +366,8 @@ public class CircuitVisionRunner extends PApplet
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
-            ((Toggle)cp5.getController("showValues")).setState(false);
+            ((Toggle)cp5.getController("showVolts")).setState(false);
+            ((Toggle)cp5.getController("showAmps")).setState(false);            
         }
     }
 
@@ -359,7 +379,8 @@ public class CircuitVisionRunner extends PApplet
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("removeMode")).setState(false);
-            ((Toggle)cp5.getController("showValues")).setState(false);
+            ((Toggle)cp5.getController("showVolts")).setState(false);
+            ((Toggle)cp5.getController("showAmps")).setState(false);            
         }
     }
 
@@ -371,11 +392,12 @@ public class CircuitVisionRunner extends PApplet
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
-            ((Toggle)cp5.getController("showValues")).setState(false);
+            ((Toggle)cp5.getController("showVolts")).setState(false);
+            ((Toggle)cp5.getController("showAmps")).setState(false);            
         }
     }
 
-    public void showValues(boolean on)
+    public void showVolts(boolean on)
     {
         if (on)
         {
@@ -392,12 +414,38 @@ public class CircuitVisionRunner extends PApplet
             }
             else 
             {
-                showValues = true;
+                showVolts = true;
             }
         }
         else
         {
-            showValues = false;
+            showVolts = false;
+        }
+    }
+
+    public void showAmps(boolean on)
+    {
+        if (on)
+        {
+            circuitMode = 0;
+            ((Toggle)cp5.getController("wireMode")).setState(false);
+            ((Toggle)cp5.getController("resistorMode")).setState(false);
+            ((Toggle)cp5.getController("batteryMode")).setState(false);
+            ((Toggle)cp5.getController("removeMode")).setState(false);
+
+            double[] currents = circuit.solve();
+            if (currents == null)
+            {
+                JOptionPane.showMessageDialog(null, "Short Circuit or Incomplete Circuit", "WARNING", JOptionPane.WARNING_MESSAGE);
+            }
+            else 
+            {
+                showAmps = true;
+            }
+        }
+        else
+        {
+            showAmps = false;
         }
     }
 
@@ -427,11 +475,11 @@ public class CircuitVisionRunner extends PApplet
         {
             for (int col = 0; col < terminalCols; col++)
             {
-                if (showValues)
+                if (showVolts)
                 {
                     textAlign(LEFT);
                 }
-                dots[row][col].display(circuit, showValues);
+                dots[row][col].display(circuit, showVolts);
             }
         }
         // Draw Components
@@ -533,7 +581,7 @@ public class CircuitVisionRunner extends PApplet
                 popMatrix();
             }
             // Show current
-            if (showValues && Math.abs(c.getCurrent()) > .00000001)
+            if (showAmps && Math.abs(c.getCurrent()) > .00000001)
             {
                 boolean end1Arrow = true;     // arrow end closer to EndPoint1
                 int biggerEnd2 = 1;   // = -1 if x1 > x2
@@ -632,8 +680,9 @@ public class CircuitVisionRunner extends PApplet
             {
                 if (newAnimation)
                 {
-                    anim = new Animation(this, circuit, gridSpacing, terminalRows, terminalCols, scaleVolts, voltScale, rotationEnabled);
+                    anim = new Animation(this, circuit, gridSpacing, terminalRows, terminalCols, scaleVolts, voltScale, scaleAmps, ampScale, rotationEnabled);
                     voltScale = anim.VOLT_SCALE;
+                    ampScale = Double.parseDouble(Float.toString(anim.SPEED));  // Necessary to keep the string representation of ampScale the same as anim.SPEED
                     newAnimation = false;
                 }
                 ortho();
@@ -651,6 +700,7 @@ public class CircuitVisionRunner extends PApplet
         private int h;
         private ControlP5 prefsCp5;
         Textfield voltScaleField;
+        Textfield ampScaleField;
 
         public PreferencesApplet(int width, int height)
         {
@@ -666,40 +716,64 @@ public class CircuitVisionRunner extends PApplet
             prefsCp5 = new ControlP5(this);
 
             prefsCp5.addToggle("autoScaleVolts")
-            .setPosition(20, 50)
+            .setPosition(20, 40)
             .setSize(120, 30)
             .getCaptionLabel()
             .align(ControlP5.CENTER, ControlP5.CENTER)
             .setText("Autoscale Voltage")
             ;
 
-            prefsCp5.addToggle("enableRotation")
+            voltScaleField = prefsCp5.addTextfield("vScale")
+            .setPosition(180, 40)
+            .setSize(40, 20)
+            .setAutoClear(false)
+            .setValue(Integer.toString(voltScale))
+            .setCaptionLabel("Pixels/Volt")
+            .setColorCaptionLabel(0)
+            ;
+
+            prefsCp5.addToggle("autoScaleAmps")
             .setPosition(20, 90)
+            .setSize(120, 30)
+            .getCaptionLabel()
+            .align(ControlP5.CENTER, ControlP5.CENTER)
+            .setText("Autoscale Current")
+            ;
+
+            ampScaleField = prefsCp5.addTextfield("aScale")
+            .setPosition(180, 90)
+            .setSize(40, 20)
+            .setAutoClear(false)
+            .setValue(Double.toString(ampScale))
+            .setCaptionLabel("Pixels/Frame")
+            .setColorCaptionLabel(0)
+            ;
+
+            prefsCp5.addToggle("enableRotation")
+            .setPosition(20, 160)
             .setSize(120, 30)
             .setValue(rotationEnabled)
             .getCaptionLabel()
             .align(ControlP5.CENTER, ControlP5.CENTER)
-            .setText("Enable 3D Rotation")
+            .setText("Enable 3-D Rotation")
             ;
 
-            voltScaleField = prefsCp5.addTextfield("vScale")
-            .setPosition(180, 50)
-            .setSize(30, 20)
-            .setAutoClear(false)
-            .setValue(Integer.toString(voltScale))
-            ;
         }
 
         public void draw()
         {
-            if (showPrefs != prevShowValue)
+            if (showPrefs != prevShowPrefs)
             {
                 prefsFrame.setVisible(showPrefs);
-                prevShowValue = showPrefs;
+                prevShowPrefs = showPrefs;
             }
             if (scaleVolts && !Integer.toString(voltScale).equals(voltScaleField.getText()))
             {
                 voltScaleField.setValue(Integer.toString(voltScale));
+            }
+            if (scaleAmps && !Double.toString(ampScale).equals(ampScaleField.getText()))
+            {
+                ampScaleField.setValue(Double.toString(ampScale));
             }
         }
 
@@ -712,6 +786,19 @@ public class CircuitVisionRunner extends PApplet
             else
             {
                 scaleVolts = false;
+            }
+            newAnimation = true;
+        }
+
+        public void autoScaleAmps(boolean on)
+        {
+            if (on)
+            {
+                scaleAmps = true;
+            }
+            else
+            {
+                scaleAmps = false;
             }
             newAnimation = true;
         }
@@ -729,16 +816,38 @@ public class CircuitVisionRunner extends PApplet
             newAnimation = true;
         }      
 
-        public void vScale(String volts)
+        public void vScale(String pixelsPerVolt)
         {
             try 
             {
-                voltScale = Integer.parseInt(volts);
+                voltScale = Integer.parseInt(pixelsPerVolt);
                 newAnimation = true;
             }
             catch (NumberFormatException e)
             {
                 System.out.println("Volt Scale must be an integer.");
+            }
+        }
+
+        /**
+         * Scales the speed at which balls move around the circuit animation.
+         */
+        public void aScale(String pixelsPerFrame)
+        {
+            try 
+            {
+                // Round to 6 significant figures
+                if (pixelsPerFrame.length() > 6)
+                {
+                    pixelsPerFrame = pixelsPerFrame.substring(0, 6);
+                }
+                ampScale = Double.parseDouble(pixelsPerFrame);
+                ampScaleField.setValue(Double.toString(ampScale));
+                newAnimation = true;
+            }
+            catch (NumberFormatException e)
+            {
+                System.out.println("Current Scale must be a number.");
             }
         }
     }

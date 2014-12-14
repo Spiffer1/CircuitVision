@@ -23,6 +23,7 @@ public class Animation
     public static float SPEED = (float).5; // scale factor for ball speed and water wheel speed
 
     private boolean autoScaleVolts;
+    private boolean autoScaleAmps;
     private boolean rotationEnabled;
     private int gridSpacing;
     private PApplet win2;
@@ -32,7 +33,7 @@ public class Animation
     private int numRows;
     private int numCols;
 
-    public Animation(PApplet animationWindow, Circuit circ, int terminalSpacing, int terminalRows, int terminalCols, boolean scaleV, int voltScale, boolean rotatable)
+    public Animation(PApplet animationWindow, Circuit circ, int terminalSpacing, int terminalRows, int terminalCols, boolean scaleV, int voltScale, boolean scaleA, double ampScale, boolean rotatable)
     {
         win2 = animationWindow;
         circuit = circ;
@@ -43,6 +44,7 @@ public class Animation
         numRows = terminalRows;
         numCols = terminalCols;
         autoScaleVolts = scaleV;
+        autoScaleAmps = scaleA;
         rotationEnabled = rotatable;
 
         // Scale the Animation display
@@ -80,6 +82,30 @@ public class Animation
         {
             VOLT_SCALE = voltScale;
         }
+
+        if (autoScaleAmps)
+        {
+            // Find max current
+            double maxCurrent = 0;
+            for (Component c : circuit.getComponents())
+            {
+                maxCurrent = Math.max(maxCurrent, Math.abs(c.getCurrent()));
+            }
+            SPEED = (float)(1.5 / maxCurrent);
+            // Truncate SPEED to 5 figures (plus a decimal point)
+            String speed = Float.toString(SPEED);
+            if (speed.length() > 6)
+            {
+                speed = speed.substring(0, 6);
+            }
+            SPEED = Float.parseFloat(speed);
+            System.out.println("SPEED is " + SPEED);
+            System.out.println("speed is " + speed);
+        }
+        else
+        {
+            SPEED = (float)ampScale;
+        }   
 
         // Construct arrayList of Towers
         for (int row = 0; row < numRows; row++)
