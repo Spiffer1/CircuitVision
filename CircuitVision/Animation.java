@@ -99,8 +99,6 @@ public class Animation
                 speed = speed.substring(0, 6);
             }
             SPEED = Float.parseFloat(speed);
-            System.out.println("SPEED is " + SPEED);
-            System.out.println("speed is " + speed);
         }
         else
         {
