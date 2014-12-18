@@ -78,7 +78,7 @@ public class Circuit
      * This method uses several helper methods to solve a circuit via Kirchhoff's rules and linear algebra. 
      * After running it, each component will have been assigned a branch number, current, and a current direction;
      * each Terminal will have a potential.
-     * @return  Returns an array of currents. Each current is indexed by its branch number within the circuit. Returns null if it does not find a complete circuit.
+     * @return  Returns an array of currents. Each current is indexed by its branch number within the circuit. Returns null if short circuit or no complete circuit.
      */
     public double[] solve()
     {
@@ -111,29 +111,7 @@ public class Circuit
             return null;
         }
 
-        // check for short circuits
-        boolean shortCircuit = false;
-        for (List<Component> loop : loops)
-        {
-            boolean battery = false;
-            boolean resistor = false;
-            for (Component c : loop)
-            {
-                if (c instanceof Battery)
-                {
-                    battery = true;
-                }
-                else if (c instanceof Resistor)
-                {
-                    resistor = true;
-                }
-            }
-            if (battery && !resistor)
-            {
-                shortCircuit = true;
-            }
-        }
-        if (shortCircuit)
+        if (shortCircuit())
         {
             return null;
         }
@@ -298,7 +276,7 @@ public class Circuit
             currents[i] = solution.getEntry(i);
         }
         //***************************************************************
-        
+
         // Update component currents
         for (Component c : components)
         {
@@ -330,6 +308,39 @@ public class Circuit
             System.out.println();
         }
         return currents;
+    }
+
+    private boolean shortCircuit()
+    {
+        boolean shortCirc = false;
+        Circuit copy = new Circuit(this);
+        for (int i = copy.getComponents().size() - 1; i >= 0; i--)
+        {
+            Component c = copy.getComponents().get(i);
+            {
+                if (c instanceof Resistor)
+                {
+                    copy.removeComponent(c);
+                }
+            }
+        }        
+        List<Terminal> nodes = new ArrayList<Terminal>();
+        List<List<Component>> loops = new ArrayList<List<Component>>();
+        int numBranches = copy.findNodesAndLoops(nodes, loops);
+        if (numBranches != 0)   // At least one loop found
+        {
+            for (List<Component> loop : loops)
+            {
+                for (Component c : loop)
+                {
+                    if (c instanceof Battery)
+                    {
+                        shortCirc = true;
+                    }
+                }
+            }
+        }
+        return shortCirc;
     }
 
     /**
@@ -374,7 +385,7 @@ public class Circuit
             orig.setBranch(c.getBranch());     
             orig.setCurrentDirection(c.getCurrentDirection());
         }
-        
+
         // Make a copy of circuit and nodes that can be modified during the loop analysis. As loops are identified,
         // components will be removed from the copy circuit, so that different loops can be found.
         Circuit copy = new Circuit(equationCopy);

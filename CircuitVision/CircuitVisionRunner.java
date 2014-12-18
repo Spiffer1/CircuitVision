@@ -51,11 +51,13 @@ public class CircuitVisionRunner extends PApplet
     private int voltScale;
     private double ampScale;
     private boolean rotationEnabled; 
+    private boolean shortCircuitWarning;
 
     // "Animate Model" button coordinates and "Show Values" button coordinates
     private int animLeft, animRight, animTop, animBottom;
     private int showVoltsLeft, showVoltsRight, showVoltsTop, showVoltsBottom;
     private int showAmpsLeft, showAmpsRight, showAmpsTop, showAmpsBottom;
+    private int prefsLeft, prefsRight, prefsTop, prefsBottom;
 
     // to make a second window...
     private SecondApplet win2;
@@ -118,7 +120,6 @@ public class CircuitVisionRunner extends PApplet
         .setSize(showVoltsRight - showVoltsLeft, showVoltsBottom - showVoltsTop)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
-            //.setFont(fontMed)
         .setText("Show Volts")
         ;
 
@@ -131,7 +132,6 @@ public class CircuitVisionRunner extends PApplet
         .setSize(showAmpsRight - showAmpsLeft, showAmpsBottom - showAmpsTop)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
-            //.setFont(fontMed)
         .setText("Show Currents")
         ;
 
@@ -139,7 +139,7 @@ public class CircuitVisionRunner extends PApplet
         animTop = 360;
         animRight = animLeft + 80;  // width = 80
         animBottom = animTop + 25; // height = 25
-        cp5.addBang("animateModel")
+        cp5.addToggle("animateModel")
         .setPosition(animLeft, animTop)
         .setSize(animRight - animLeft, animBottom - animTop)
         .getCaptionLabel()
@@ -147,9 +147,13 @@ public class CircuitVisionRunner extends PApplet
         .setText("Animate Model")
         ;
 
+        prefsLeft = 35;
+        prefsTop = 10;
+        prefsRight = prefsLeft + 50;    // width = 50
+        prefsBottom = prefsTop + 25;    // height = 25
         cp5.addToggle("showPrefs")  // Clicking this button will toggle the value of the global boolean variable, showPrefs
-        .setPosition(35, 10)
-        .setSize(50, 25)
+        .setPosition(prefsLeft, prefsTop)
+        .setSize(prefsRight - prefsLeft, prefsBottom - prefsTop)
         .getCaptionLabel()
         .align(ControlP5.CENTER, ControlP5.CENTER)
         .setText("Prefs")
@@ -238,8 +242,10 @@ public class CircuitVisionRunner extends PApplet
     {
         int mX = mouseX;
         int mY = mouseY;
-        if ( !((mX > animLeft && mX < animRight && mY > animTop && mY < animBottom)
-            || (mX > showVoltsLeft && mX < showVoltsRight && mY > showVoltsTop && mY < showVoltsBottom)) ) // not on animate button or Show Values button
+        if ( !( (mX > animLeft && mX < animRight && mY > animTop && mY < animBottom)
+            || (mX > showVoltsLeft && mX < showVoltsRight && mY > showVoltsTop && mY < showVoltsBottom)  // not on animate button or Show Volts button
+            || (mX > showAmpsLeft && mX < showAmpsRight && mY > showAmpsTop && mY < showAmpsBottom)      // or Prefs button or Show Currents button
+            || (mX > prefsLeft && mX < prefsRight && mY > prefsTop && mY < prefsBottom) ) )
         {
             animating = false;
         }
@@ -284,7 +290,7 @@ public class CircuitVisionRunner extends PApplet
             {
                 if (c instanceof Resistor)
                 {
-                    // joption pane to get resistance
+                    // joption pane to get resistance   **Some Danger: Bugs reported when using Swing with Processing...**
                     int r = c.getResistance();
                     String input = JOptionPane.showInputDialog("Enter Resistance in ohms:", Integer.toString(r));
                     if (input != null)
@@ -304,7 +310,7 @@ public class CircuitVisionRunner extends PApplet
                 {
                     if (minDist2 - minDist < gridSpacing / 3)   // If you click near the middle of the battery...
                     {
-                        // ...joptionpane prompts for new voltage value
+                        // ...joptionpane prompts for new voltage value     **Some Danger: Bugs reported when using Swing with Processing...**
                         double v = ((Battery)c).getVoltage();
                         String input = JOptionPane.showInputDialog("Enter Voltage in Volts:", Double.toString(v));
                         if (input != null)
@@ -330,7 +336,6 @@ public class CircuitVisionRunner extends PApplet
             {
                 if (circuitMode == 1)
                 {
-                    // (Maybe) Add ControlP5 text field beside or above resistor
                     circuit.addComponent(new Resistor(10), r1, c1, r2, c2);
                 }
                 if (circuitMode == 2)
@@ -349,6 +354,10 @@ public class CircuitVisionRunner extends PApplet
     {
         if (on)
         {
+            if (shortCircuitWarning)
+            {
+                shortCircuitWarning = false;
+            }
             circuitMode = 1;
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
@@ -362,6 +371,10 @@ public class CircuitVisionRunner extends PApplet
     {
         if (on)
         {
+            if (shortCircuitWarning)
+            {
+                shortCircuitWarning = false;
+            }
             circuitMode = 2;
             ((Toggle)cp5.getController("resistorMode")).setState(false);
             ((Toggle)cp5.getController("batteryMode")).setState(false);
@@ -375,6 +388,10 @@ public class CircuitVisionRunner extends PApplet
     {
         if (on)
         {
+            if (shortCircuitWarning)
+            {
+                shortCircuitWarning = false;
+            }
             circuitMode = 3;
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("resistorMode")).setState(false);
@@ -388,6 +405,10 @@ public class CircuitVisionRunner extends PApplet
     {
         if (on)
         {
+            if (shortCircuitWarning)
+            {
+                shortCircuitWarning = false;
+            }
             circuitMode = 4;
             ((Toggle)cp5.getController("wireMode")).setState(false);
             ((Toggle)cp5.getController("resistorMode")).setState(false);
@@ -410,7 +431,10 @@ public class CircuitVisionRunner extends PApplet
             double[] currents = circuit.solve();
             if (currents == null)
             {
-                JOptionPane.showMessageDialog(null, "Short Circuit or Incomplete Circuit", "WARNING", JOptionPane.WARNING_MESSAGE);
+                animating = false;
+                showVolts = false;
+                ((Toggle)cp5.getController("showVolts")).setState(false);
+                shortCircuitWarning = true;
             }
             else 
             {
@@ -436,7 +460,10 @@ public class CircuitVisionRunner extends PApplet
             double[] currents = circuit.solve();
             if (currents == null)
             {
-                JOptionPane.showMessageDialog(null, "Short Circuit or Incomplete Circuit", "WARNING", JOptionPane.WARNING_MESSAGE);
+                animating = false;
+                showAmps = false;
+                ((Toggle)cp5.getController("showAmps")).setState(false);
+                shortCircuitWarning = true;
             }
             else 
             {
@@ -449,22 +476,31 @@ public class CircuitVisionRunner extends PApplet
         }
     }
 
-    public void animateModel()
+    public void animateModel(boolean on)
     {
-        circuitMode = 0;
-        ((Toggle)cp5.getController("wireMode")).setState(false);
-        ((Toggle)cp5.getController("resistorMode")).setState(false);
-        ((Toggle)cp5.getController("batteryMode")).setState(false);
-        ((Toggle)cp5.getController("removeMode")).setState(false);
-        double[] currents = circuit.solve();
-        if (currents == null)
+        if (on)
         {
-            JOptionPane.showMessageDialog(null, "Short Circuit or Incomplete Circuit", "WARNING", JOptionPane.WARNING_MESSAGE);
+            circuitMode = 0;
+            ((Toggle)cp5.getController("wireMode")).setState(false);
+            ((Toggle)cp5.getController("resistorMode")).setState(false);
+            ((Toggle)cp5.getController("batteryMode")).setState(false);
+            ((Toggle)cp5.getController("removeMode")).setState(false);
+            double[] currents = circuit.solve();
+            if (currents == null)
+            {
+                animating = false;
+                ((Toggle)cp5.getController("animateModel")).setState(false);
+                shortCircuitWarning = true;
+            }
+            else 
+            {
+                newAnimation = true;
+                animating = true;
+            }
         }
-        else 
+        else
         {
-            newAnimation = true;
-            animating = true;
+            animating = false;
         }
     }
 
@@ -643,6 +679,13 @@ public class CircuitVisionRunner extends PApplet
                     text( Double.toString(current) + " A", x1 + 13, (y1 + y2) / 2 + 5 );
                 }
             }
+        }
+        if (shortCircuitWarning)
+        {
+            textSize(18);
+            fill(255, 0, 0);
+            textAlign(LEFT);
+            text("Short Circuit or Incomplete Circuit!", 150, 150);
         }
     }
 
