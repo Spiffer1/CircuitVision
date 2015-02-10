@@ -19,7 +19,7 @@ public class Animation
     public static int VOLT_SCALE;
     public static int WALL_WID = 16;
     public static int WALL_LEN;     // defaults to gridSpacing - WALL_WID
-    public static int BALLS_PER_WALL = 3;
+    public static int BALLS_PER_WALL = 3;   // number of balls on a level wall (wire); there may be more on a sloped wall
     public static float SPEED = (float).5; // scale factor for ball speed and water wheel speed
 
     private boolean autoScaleVolts;
@@ -137,9 +137,14 @@ public class Animation
         // Construct balls on each wall
         for (Wall wall : walls)
         {
-            for (int i = 0; i < BALLS_PER_WALL; i++)
+            // Add more balls per wall if wall is sloped significantly to keep ball density constant
+            int height = wall.getT1().getHeight() - wall.getT2().getHeight();
+            int wallLength = (int)Math.sqrt(height * height + (WALL_LEN + WALL_WID) * (WALL_LEN + WALL_WID));
+            int numBalls = BALLS_PER_WALL * wallLength / (WALL_LEN + WALL_WID);
+            wall.setMaxBalls(numBalls);
+            for (int i = 0; i < numBalls; i++)
             {
-                wall.addNewBall(i * (WALL_LEN + WALL_WID) / BALLS_PER_WALL);
+                wall.addNewBall(i * (WALL_LEN + WALL_WID) / (double)numBalls);
             }
         }
 

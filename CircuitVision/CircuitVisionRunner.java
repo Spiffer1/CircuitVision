@@ -60,7 +60,7 @@ public class CircuitVisionRunner extends PApplet
     private int prefsLeft, prefsRight, prefsTop, prefsBottom;
 
     // to make a second window...
-    private SecondApplet win2;
+    private AnimationApplet win2;
     // to make a Preferences Window...
     private Frame prefsFrame;
     private PreferencesApplet prefs;
@@ -697,14 +697,14 @@ public class CircuitVisionRunner extends PApplet
         public PFrame() 
         {
             setBounds(0, 0, win2width, win2height);
-            win2 = new SecondApplet();
+            win2 = new AnimationApplet();
             add(win2);
             win2.init();
             setVisible(true); // was show();
         }
     }
 
-    public class SecondApplet extends PApplet
+    public class AnimationApplet extends PApplet
     {
         private Animation anim;
 
@@ -719,6 +719,7 @@ public class CircuitVisionRunner extends PApplet
 
         public void draw()
         {
+            //background(100);
             if (animating)
             {
                 if (newAnimation)
@@ -732,7 +733,7 @@ public class CircuitVisionRunner extends PApplet
                 background(100);
                 fill(255);
                 anim.displayAnimation();
-                redraw();
+                //redraw();
             }
         }
     }

@@ -4,10 +4,10 @@ public class Ball
 {
     public static int RADIUS = 4;
     PApplet win2;
-    private float x;
+    private double x;
     private Wall myWall;
 
-    public Ball(PApplet animationWindow, Wall wall, float initX)
+    public Ball(PApplet animationWindow, Wall wall, double initX)
     {
         win2 = animationWindow;
         myWall = wall;
@@ -16,7 +16,7 @@ public class Ball
 
     public void move()
     {
-        x += (float)(Animation.SPEED * myWall.getCurrent());
+        x += Animation.SPEED * myWall.getCurrent() * Animation.BALLS_PER_WALL / myWall.getMaxBalls();
     }
 
     public void display()
@@ -54,7 +54,7 @@ public class Ball
             win2.rotateY(3 * win2.PI / 2);            
         }
         // draw sphere at appropriate height (tower or wall height)
-        win2.translate(x, -RADIUS, 0);
+        win2.translate((float)x, -RADIUS, 0);
         win2.sphere(RADIUS);
 
         // draw Ski lifts to push balls through batteries
@@ -74,7 +74,7 @@ public class Ball
         win2.popMatrix();
     }
 
-    public float getX()
+    public double getX()
     {
         return x;
     }

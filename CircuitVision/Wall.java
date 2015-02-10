@@ -15,7 +15,7 @@ public class Wall
     private double current;
     private boolean readyForBall;
     private List<Ball> balls;
-    private int numBalls;
+    private int maxBalls;
     private Wheel myWheel;
     private Tower batteryPosEnd;
 
@@ -32,11 +32,11 @@ public class Wall
             farTower = t2;
             nearTower = t1;
         }
-        
+
         current = Math.abs(current_);
         readyForBall = false;
         balls = new ArrayList<Ball>();
-        numBalls = Animation.BALLS_PER_WALL;
+        maxBalls = Animation.BALLS_PER_WALL;
         myWheel = null;
         batteryPosEnd = null;
     }
@@ -102,7 +102,7 @@ public class Wall
 
     public void updateBalls()
     {
-        for (int i = 0; i < numBalls; i++)
+        for (int i = 0; i < balls.size(); i++)
         {
             Ball b = balls.get(i);
             b.display();
@@ -110,7 +110,6 @@ public class Wall
             if (b.getX() > Animation.WALL_LEN + Animation.WALL_WID)
             {
                 balls.remove(b);
-                numBalls--;
                 readyForBall = true;
                 t2.addWaitingBall();
             }
@@ -118,7 +117,7 @@ public class Wall
         while (readyForBall && t1.takeWaitingBall())
         {
             // Find x for ball that is closest to t1
-            float x = Animation.WALL_LEN + Animation.WALL_WID;
+            double x = Animation.WALL_LEN + Animation.WALL_WID;
             for (Ball b : balls)
             {
                 if (b.getX() < x)
@@ -127,15 +126,24 @@ public class Wall
                 }
             }
 
-            addNewBall(x - (Animation.WALL_LEN + Animation.WALL_WID) / Animation.BALLS_PER_WALL);
-            numBalls++;
-            if (balls.size() >= Animation.BALLS_PER_WALL)
+            addNewBall(x - (Animation.WALL_LEN + Animation.WALL_WID) / (double)maxBalls);
+            if (balls.size() >= maxBalls)
             {
                 readyForBall = false;
             }
         }
     }
 
+    public void setMaxBalls(int balls)
+    {
+        maxBalls = balls;
+    }
+    
+    public int getMaxBalls()
+    {
+        return maxBalls;
+    }
+    
     public void addWheel()
     {
         int spinDirection = 1;
@@ -145,13 +153,13 @@ public class Wall
         }
         myWheel = new Wheel(win2, spinDirection * current);
     }
-    
+
     public void addSkiLift(Tower posEnd)
     {
         batteryPosEnd = posEnd;
     }
 
-    public void addNewBall(float x)
+    public void addNewBall(double x)
     {
         balls.add(new Ball(win2, this, x));
     }
@@ -170,7 +178,7 @@ public class Wall
     {
         return t2;
     }
-    
+
     public Tower getPosEnd()
     {
         return batteryPosEnd;
