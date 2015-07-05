@@ -12,7 +12,7 @@ public class Wire extends Component
     }
     
     /**
-     * @return  Returns the Component toStrin() with "Wire" appended.
+     * @return  Returns the Component toString() with "Wire" appended.
      */
     public String toString()
     {

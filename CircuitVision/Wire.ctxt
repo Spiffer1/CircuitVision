@@ -4,5 +4,5 @@ comment0.target=Wire()
 comment0.text=\n\ Constructs\ a\ piece\ of\ wire\n
 comment1.params=
 comment1.target=java.lang.String\ toString()
-comment1.text=\n\ @return\ \ Returns\ the\ Component\ toStrin()\ with\ "Wire"\ appended.\n
+comment1.text=\n\ @return\ \ Returns\ the\ Component\ toString()\ with\ "Wire"\ appended.\n
 numComments=2

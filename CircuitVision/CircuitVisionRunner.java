@@ -303,7 +303,10 @@ public class CircuitVisionRunner extends PApplet
                         {
                             // does nothing, so resistance is unchanged
                         }
-                        c.setResistance (r);
+                        if (r > 0)
+                        {
+                            c.setResistance (r);
+                        }
                     }
                 }
                 if (c instanceof Battery)
@@ -323,7 +326,10 @@ public class CircuitVisionRunner extends PApplet
                             {
                                 // does nothing, so Voltage stays as it is
                             }
-                            ((Battery)c).setVoltage(v);
+                            if (v > 0)
+                            {
+                                ((Battery)c).setVoltage(v);
+                            }
                         }
                     }
                     else    // If you click near the end of the battery...

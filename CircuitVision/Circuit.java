@@ -310,6 +310,10 @@ public class Circuit
         return currents;
     }
 
+    /**
+     * Identifies if a short circuit exists: complete loop with no resistors and at least one battery.
+     * @return True if short circuit exists; false otherwise.
+     */
     private boolean shortCircuit()
     {
         boolean shortCirc = false;
@@ -326,8 +330,8 @@ public class Circuit
         }        
         List<Terminal> nodes = new ArrayList<Terminal>();
         List<List<Component>> loops = new ArrayList<List<Component>>();
-        int numBranches = copy.findNodesAndLoops(nodes, loops);
-        if (numBranches != 0)   // At least one loop found
+        int copyBranches = copy.findNodesAndLoops(nodes, loops);
+        if (copyBranches != 0)   // At least one loop found
         {
             for (List<Component> loop : loops)
             {
@@ -346,11 +350,11 @@ public class Circuit
     /**
      * This method uses helper methods to: 
      *     (1) populate the ArrayList of nodes (junctions) for a circuit;
-     *     (2) assign a current/branch number to each independent branch of the circuit;
+     *     (2) assign a current/branch number to each independent branch of the circuit; dead-ends are branch 999
      *     (3) assign a current direction to each component within each branch;
      *     (4) populate a List of loops, wherein each loop is a List of the components in that loop;
      * @param nodes  An empty ArrayList that will be populated with the terminals that are junctions in the circuit.
-     * @param loops  An empty ArrayList of Lists of components that will be populated with components from circuit loops.
+     * @param origloops  An empty ArrayList of Lists of components that will be populated with components from circuit loops.
      * @return The number of branches in the circuit, excluding any dead-end branches.
      */
     private int findNodesAndLoops(List<Terminal> nodes, List<List<Component>> origLoops)
@@ -366,15 +370,17 @@ public class Circuit
         Circuit equationCopy = new Circuit(this);
         equationCopy.findNodes(nodes);
         equationCopy.labelBranches(nodes);
-        // A branch labeled 999 does not form a complete circuit. Remove branch 999 components to do the circuit analysis.
-        for (int i = equationCopy.getComponents().size() - 1; i >= 0; i--)
+        Component deadEnd = equationCopy.getComponents().get(0); // just to be not null
+        while (deadEnd != null)    // Remove one dangling component at a time, until there are no more
         {
-            Component comp = equationCopy.getComponents().get(i);
-            if (comp.getBranch() == 999)
+            deadEnd = equationCopy.removeDangler();
+            if (deadEnd != null)
             {
-                equationCopy.removeComponent(comp);
+                Component orig = equationCopy.findCorrespondingComponent(this, deadEnd);
+                orig.setBranch(999);
             }
         }
+        
         equationCopy.findNodes(nodes);  // The nodes list is now properly updated for writing circuit equations.
         equationCopy.labelBranches(nodes);
 
@@ -447,10 +453,10 @@ public class Circuit
             // To find the next independent loop, remove a component (and dangling ends) from the loop you just found.
             // That way you won't find the exact same loop the next time.
             copy.removeComponent(copyLoops.get(loopCounter).get(0));
-            boolean componentRemoved = true;
-            while (componentRemoved)    // Remove one dangling component at a time, until there are no more
+            Component dangler = copy.getComponents().get(0); // just to be not null;
+            while (dangler != null)    // Remove one dangling component at a time, until there are no more
             {
-                componentRemoved = copy.removeDanglers();
+                dangler = copy.removeDangler();
             }
             loopCounter++;
         }
@@ -478,12 +484,11 @@ public class Circuit
     }
 
     /**
-     * If a circuit has dead-ends, this method removes the last component in each dead-end branch.
-     * @return Returns "true" if any components were removed; false otherwise.
+     * If a circuit has dead-ends, this method removes the last component in a dead-end branch.
+     * @return Returns the component that was removed if there was one; null otherwise.
      */
-    private boolean removeDanglers()
+    private Component removeDangler()
     {
-        boolean removed = false;
         for (int i = components.size() - 1; i >= 0; i--)    // Loop through all circuit components from right end of list
         {                                                   // to do a "for-loop removal" and not skip any components
             Component component = components.get(i);
@@ -493,11 +498,14 @@ public class Circuit
             List<Component> endPt2Connections = component.getEndPt2().getConnections();
             if (endPt1Connections.size() == 1 || endPt2Connections.size() == 1)
             {
+                Component componentCopy = new Wire();
+                componentCopy.setEndPt1(component.getEndPt1());
+                componentCopy.setEndPt2(component.getEndPt2());
                 removeComponent(component);
-                removed = true;
+                return componentCopy;
             }
         }
-        return removed;
+        return null;
     }
 
     /**
@@ -524,17 +532,17 @@ public class Circuit
      * Labels each component in the circuit with a branch number. The current through all components in a branch are the same,
      * so branch numbers correspond to current variables in the circuit equations. E.g. current[0] = current through components
      * labeled with branch 0. This method also assigns a current direction to each component within a branch. Branches that are 
-     * dead-ends are given the branch number 999.
+     * dead-ends are given the branch number 999. (May not identify all deadends.)
      * @param nodes  The List of nodes (junctions) in the circuit.
-     * @return True if there is a complete circuit; false if there is no complete circuit.
+     * @return False if it finds no complete circuit; true otherwise.
      */
     private boolean labelBranches(List<Terminal> nodes)
     {
+        numBranches = 0;
         if (components.size() == 0)
         {
             return false;
         }
-        numBranches = 0;
         if (nodes.size() == 0)  // Circuit is a single loop without junctions (or a single incomplete complete)
         {
             Component c = components.get(0);
