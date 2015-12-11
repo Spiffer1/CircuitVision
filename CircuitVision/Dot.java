@@ -43,7 +43,7 @@ public class Dot
             double potential = term.getPotential();
             if (potential < Double.MAX_VALUE / 10)
             {
-                potential = (int)(potential * 10 + 0.5) / 10.0;     // round to nearest tenth
+                potential = (int)(potential * 1000 + 0.5) / 1000.0;     // round to nearest thousandth
                 //gui.textAlign(LEFT);
                 gui.fill(255);
                 gui.textSize(10);

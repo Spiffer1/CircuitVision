@@ -306,6 +306,8 @@ public class CircuitVisionRunner extends PApplet
                         if (r > 0)
                         {
                             c.setResistance (r);
+                            ((Toggle)cp5.getController("showVolts")).setState(false);
+                            ((Toggle)cp5.getController("showAmps")).setState(false);   
                         }
                     }
                 }
@@ -329,6 +331,8 @@ public class CircuitVisionRunner extends PApplet
                             if (v > 0)
                             {
                                 ((Battery)c).setVoltage(v);
+                                ((Toggle)cp5.getController("showVolts")).setState(false);
+                                ((Toggle)cp5.getController("showAmps")).setState(false);   
                             }
                         }
                     }
@@ -647,7 +651,7 @@ public class CircuitVisionRunner extends PApplet
                 fill(255);
                 textSize(10);
                 double current = Math.abs(c.getCurrent());
-                current = (int)(current * 100 + 0.5) / 100.0;
+                current = (int)(current * 10000 + 0.5) / 10000.0;   // 4 decimal places on current
                 if (y1 == y2)   // a horizontal component
                 {
                     // Draw current arrow
