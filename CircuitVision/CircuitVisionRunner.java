@@ -307,7 +307,8 @@ public class CircuitVisionRunner extends PApplet
                         {
                             c.setResistance (r);
                             ((Toggle)cp5.getController("showVolts")).setState(false);
-                            ((Toggle)cp5.getController("showAmps")).setState(false);   
+                            ((Toggle)cp5.getController("showAmps")).setState(false); 
+                            ((Toggle)cp5.getController("animateModel")).setState(false);
                         }
                     }
                 }
@@ -333,6 +334,7 @@ public class CircuitVisionRunner extends PApplet
                                 ((Battery)c).setVoltage(v);
                                 ((Toggle)cp5.getController("showVolts")).setState(false);
                                 ((Toggle)cp5.getController("showAmps")).setState(false);   
+                                ((Toggle)cp5.getController("animateModel")).setState(false);
                             }
                         }
                     }
